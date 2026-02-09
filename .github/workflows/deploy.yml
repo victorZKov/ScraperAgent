@@ -1,0 +1,103 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "*.cs"
+      - "*.csproj"
+      - "*.slnx"
+      - "Configuration/**"
+      - "Data/**"
+      - "Endpoints/**"
+      - "Models/**"
+      - "Services/**"
+      - "Workers/**"
+      - "ScraperAgent.ServiceDefaults/**"
+      - "Dockerfile"
+      - "docker-compose.prod.yml"
+      - "Caddyfile"
+      - "appsettings.json"
+      - "searxng/**"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Deploy to VM
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy compose and config files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.prod.yml,Caddyfile,appsettings.json,searxng/"
+          target: "/opt/scraperagent"
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/scraperagent
+
+            # Login to GHCR
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull latest image
+            docker compose -f docker-compose.prod.yml pull api
+
+            # Restart (recreate only changed services)
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Prune old images
+            docker image prune -f
+
+      - name: Health check
+        run: |
+          sleep 15
+          curl -sf https://api.scraperagent.victorz.cloud/api/version || echo "Warning: Health check failed (may need DNS propagation)"

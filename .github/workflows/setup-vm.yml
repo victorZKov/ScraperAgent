@@ -1,0 +1,69 @@
+name: Setup VM (one-time)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Initial VM Setup
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy files to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.prod.yml,Caddyfile,appsettings.json,searxng/"
+          target: "/opt/scraperagent"
+
+      - name: Create .env and start services
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/scraperagent
+
+            # Create production .env
+            cat > .env << 'ENVEOF'
+            POSTGRES_USER=scraperagent
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=scraperagent
+            ConnectionStrings__configdb=Host=postgres;Port=5432;Database=scraperagent;Username=scraperagent;Password=${{ secrets.POSTGRES_PASSWORD }}
+            AzureOpenAI__Endpoint=${{ secrets.AZURE_OPENAI_ENDPOINT }}
+            AzureOpenAI__ApiKey=${{ secrets.AZURE_OPENAI_API_KEY }}
+            AzureOpenAI__DeploymentName=${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+            Email__Smtp__Username=${{ secrets.SMTP_USERNAME }}
+            Email__Smtp__Password=${{ secrets.SMTP_PASSWORD }}
+            Finnhub__ApiKey=${{ secrets.FINNHUB_API_KEY }}
+            Mollie__ApiKey=${{ secrets.MOLLIE_API_KEY }}
+            Mollie__WebhookBaseUrl=https://api.scraperagent.victorz.cloud
+            Mollie__RedirectBaseUrl=${{ secrets.MOLLIE_REDIRECT_BASE_URL }}
+            TweetSource=live
+            ReportRecipients=${{ secrets.REPORT_RECIPIENTS }}
+            SearXNG__BaseUrl=http://searxng:8080
+            ASPNETCORE_ENVIRONMENT=Production
+            GITHUB_REPOSITORY=${{ github.repository }}
+            IMAGE_TAG=latest
+            ENVEOF
+            chmod 600 .env
+
+            # Generate random SearXNG secret key
+            SEARXNG_SECRET=$(openssl rand -hex 32)
+            if [ -f searxng/settings.yml ]; then
+              sed -i "s/ <SEARXNG_SECRET_KEY>/$SEARXNG_SECRET/" searxng/settings.yml
+            fi
+
+            # Login to GHCR and start services
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+
+            echo "Setup complete. Services starting..."
+            sleep 10
+            docker compose -f docker-compose.prod.yml ps

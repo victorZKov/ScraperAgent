@@ -1,0 +1,6 @@
+location                = "westeurope"
+resource_group_name     = "rg-scraperagent"
+vm_size                 = "Standard_B1ms"
+dns_zone_name           = "victorz.cloud"
+dns_zone_resource_group = "rg-dns"
+api_subdomain           = "api.scraperagent"

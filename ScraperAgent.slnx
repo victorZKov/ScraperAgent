@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ScraperAgent.csproj" />
+  <Project Path="ScraperAgent.AppHost/ScraperAgent.AppHost.csproj" />
+  <Project Path="ScraperAgent.ServiceDefaults/ScraperAgent.ServiceDefaults.csproj" />
+</Solution>

@@ -1,0 +1,43 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+publish/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Secrets
+.env
+.env.local
+.env.production
+local.settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Aspire (local dev only)
+ScraperAgent.AppHost/bin/
+ScraperAgent.AppHost/obj/
+
+# Docker
+*.tar
+caddy_data/
+caddy_config/
+
+# Terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/*.tfplan
+
+# Node
+node_modules/
+.next/
