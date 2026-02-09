@@ -1,5 +1,5 @@
 # =============================================================
-#  ScraperAgent Home Setup — Windows PowerShell
+#  ScraperAgent Home Setup - Windows PowerShell
 #
 #  Run this from the repo root:
 #    powershell -ExecutionPolicy Bypass -File scripts\home-setup.ps1
@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  ScraperAgent — Home Setup" -ForegroundColor Cyan
+Write-Host "  ScraperAgent - Home Setup" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -70,22 +70,22 @@ Write-Host "[3/6] Creating Cloudflare Tunnel..." -ForegroundColor Yellow
 $tunnelName = "scraperagent"
 $existingTunnel = cloudflared tunnel list 2>$null | Select-String $tunnelName
 if ($existingTunnel) {
-    Write-Host "  Tunnel '$tunnelName' already exists." -ForegroundColor Green
+    Write-Host "  Tunnel $tunnelName already exists." -ForegroundColor Green
 } else {
     cloudflared tunnel create $tunnelName
-    Write-Host "  Tunnel '$tunnelName' created." -ForegroundColor Green
+    Write-Host "  Tunnel $tunnelName created." -ForegroundColor Green
 }
 
 # --- Step 4: Configure DNS ---
 Write-Host ""
 Write-Host "[4/6] Setting up DNS route..." -ForegroundColor Yellow
-Write-Host "  Pointing api.scraperagent.eu -> tunnel" -ForegroundColor Gray
+Write-Host "  Pointing api.scraperagent.eu to tunnel" -ForegroundColor Gray
 
 try {
     cloudflared tunnel route dns $tunnelName api.scraperagent.eu
     Write-Host "  DNS route configured." -ForegroundColor Green
 } catch {
-    Write-Host "  DNS route may already exist (that's OK)." -ForegroundColor Yellow
+    Write-Host "  DNS route may already exist, that is OK." -ForegroundColor Yellow
 }
 
 # --- Step 5: Get tunnel token ---
