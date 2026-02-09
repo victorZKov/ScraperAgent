@@ -32,10 +32,13 @@ try {
 }
 
 # Docker running?
-try {
-    docker info 2>$null | Out-Null
+$ErrorActionPreference = "SilentlyContinue"
+docker info *>$null
+$dockerRunning = $LASTEXITCODE -eq 0
+$ErrorActionPreference = "Stop"
+if ($dockerRunning) {
     Write-Host "  Docker Desktop: running" -ForegroundColor Green
-} catch {
+} else {
     Write-Host "  ERROR: Docker Desktop is not running. Start it first." -ForegroundColor Red
     exit 1
 }
