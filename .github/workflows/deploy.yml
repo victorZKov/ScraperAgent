@@ -62,7 +62,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
-    name: Deploy to VM
+    name: Deploy to Instance
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: production
@@ -75,8 +75,8 @@ jobs:
       - name: Copy compose and config files
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USERNAME }}
+          host: ${{ secrets.SCW_VM_HOST }}
+          username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "docker-compose.prod.yml,Caddyfile,appsettings.json"
           target: "/opt/scraperagent"
@@ -86,11 +86,12 @@ jobs:
         uses: appleboy/ssh-action@v1
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MOLLIE_REDIRECT: ${{ secrets.MOLLIE_REDIRECT_BASE_URL }}
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USERNAME }}
+          host: ${{ secrets.SCW_VM_HOST }}
+          username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GHCR_TOKEN
+          envs: GHCR_TOKEN,MOLLIE_REDIRECT
           script: |
             cd /opt/scraperagent
 
@@ -102,6 +103,10 @@ jobs:
             grep -q "^GITHUB_REPOSITORY_LOWER=" .env 2>/dev/null && \
               sed -i "s|^GITHUB_REPOSITORY_LOWER=.*|GITHUB_REPOSITORY_LOWER=$REPO_LOWER|" .env || \
               echo "GITHUB_REPOSITORY_LOWER=$REPO_LOWER" >> .env
+
+            # Update Mollie URLs in .env
+            sed -i "s|^Mollie__WebhookBaseUrl=.*|Mollie__WebhookBaseUrl=https://api.scraperagent.eu|" .env
+            sed -i "s|^Mollie__RedirectBaseUrl=.*|Mollie__RedirectBaseUrl=$MOLLIE_REDIRECT|" .env
 
             # Pull latest image
             docker compose -f docker-compose.prod.yml pull api
