@@ -1,11 +1,11 @@
-name: Setup VM (one-time)
+name: Setup Instance (one-time)
 
 on:
   workflow_dispatch:
 
 jobs:
   setup:
-    name: Initial VM Setup
+    name: Initial Instance Setup
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -14,11 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy files to VM
+      - name: Copy files to instance
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USERNAME }}
+          host: ${{ secrets.SCW_VM_HOST }}
+          username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "docker-compose.prod.yml,Caddyfile,appsettings.json,searxng/"
           target: "/opt/scraperagent"
@@ -28,8 +28,8 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USERNAME }}
+          host: ${{ secrets.SCW_VM_HOST }}
+          username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: GHCR_TOKEN
           script: |
@@ -37,10 +37,7 @@ jobs:
 
             # Create production .env
             cat > .env <<EOF
-            POSTGRES_USER=scraperagent
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=scraperagent
-            ConnectionStrings__configdb=Host=postgres;Port=5432;Database=scraperagent;Username=scraperagent;Password=${{ secrets.POSTGRES_PASSWORD }}
+            ConnectionStrings__configdb=Host=${{ secrets.DB_HOST }};Port=${{ secrets.DB_PORT }};Database=scraperagent;Username=scraperagent;Password=${{ secrets.DB_PASSWORD }};SSL Mode=Require;Trust Server Certificate=true
             AzureOpenAI__Endpoint=${{ secrets.AZURE_OPENAI_ENDPOINT }}
             AzureOpenAI__ApiKey=${{ secrets.AZURE_OPENAI_API_KEY }}
             AzureOpenAI__DeploymentName=${{ secrets.AZURE_OPENAI_DEPLOYMENT }}

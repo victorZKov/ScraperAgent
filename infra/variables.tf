@@ -1,45 +1,47 @@
-variable "location" {
-  description = "Azure region"
+variable "zone" {
+  description = "Scaleway zone"
   type        = string
-  default     = "westeurope"
+  default     = "nl-ams-1"
 }
 
-variable "resource_group_name" {
-  description = "Resource group name"
+variable "region" {
+  description = "Scaleway region"
   type        = string
-  default     = "rg-scraperagent"
+  default     = "nl-ams"
 }
 
-variable "vm_size" {
-  description = "VM size"
+variable "instance_type" {
+  description = "Scaleway instance type"
   type        = string
-  default     = "Standard_B1ms"
+  default     = "DEV1-S"
 }
 
-variable "vm_admin_username" {
-  description = "VM admin SSH username"
+variable "db_node_type" {
+  description = "Scaleway managed database node type"
   type        = string
-  default     = "azureuser"
+  default     = "DB-DEV-S"
 }
 
 variable "ssh_public_key" {
-  description = "SSH public key for VM access"
+  description = "SSH public key for instance access"
   type        = string
+  sensitive   = true
 }
 
-variable "dns_zone_name" {
-  description = "Existing DNS zone name"
+variable "api_domain" {
+  description = "Domain for the API endpoint"
+  type        = string
+  default     = "api.scraperagent.eu"
+}
+
+variable "dns_zone" {
+  description = "DNS zone (managed on Scaleway)"
   type        = string
   default     = "scraperagent.eu"
 }
 
-variable "dns_zone_resource_group" {
-  description = "Resource group containing the DNS zone"
+variable "postgres_password" {
+  description = "Password for managed PostgreSQL"
   type        = string
-}
-
-variable "api_subdomain" {
-  description = "Subdomain for the API"
-  type        = string
-  default     = "api.scraperagent"
+  sensitive   = true
 }

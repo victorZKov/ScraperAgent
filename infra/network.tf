@@ -1,72 +1,30 @@
-resource "azurerm_virtual_network" "main" {
-  name                = "vnet-scraperagent"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+resource "scaleway_vpc_private_network" "main" {
+  name   = "pn-scraperagent"
+  region = var.region
+  tags   = ["scraperagent", "terraform"]
 }
 
-resource "azurerm_subnet" "main" {
-  name                 = "snet-scraperagent"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
+resource "scaleway_instance_security_group" "main" {
+  name                    = "sg-scraperagent"
+  inbound_default_policy  = "drop"
+  outbound_default_policy = "accept"
 
-resource "azurerm_network_security_group" "main" {
-  name                = "nsg-scraperagent"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  security_rule {
-    name                       = "SSH"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  inbound_rule {
+    action = "accept"
+    port   = 22
   }
 
-  security_rule {
-    name                       = "HTTP"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  inbound_rule {
+    action = "accept"
+    port   = 80
   }
 
-  security_rule {
-    name                       = "HTTPS"
-    priority                   = 1003
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  inbound_rule {
+    action = "accept"
+    port   = 443
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "main" {
-  subnet_id                 = azurerm_subnet.main.id
-  network_security_group_id = azurerm_network_security_group.main.id
-}
-
-resource "azurerm_public_ip" "main" {
-  name                = "pip-scraperagent"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-
-  tags = {
-    project = "ScraperAgent"
-  }
+resource "scaleway_instance_ip" "main" {
+  type = "routed_ipv4"
 }

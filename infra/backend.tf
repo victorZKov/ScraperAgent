@@ -1,9 +1,13 @@
 terraform {
-  backend "azurerm" {
-    resource_group_name  = "ne-mgmt-s01"
-    storage_account_name = "scraperagenttfstate"
-    container_name       = "tfstate"
-    key                  = "scraperagent.tfstate"
-    use_oidc             = false
+  backend "s3" {
+    bucket                      = "kovimatic-tfstate"
+    key                         = "scraperagent.tfstate"
+    region                      = "nl-ams"
+    endpoints                   = { s3 = "https://s3.nl-ams.scw.cloud" }
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
   }
 }

@@ -1,17 +1,10 @@
-data "azurerm_dns_zone" "main" {
-  name                = var.dns_zone_name
-  resource_group_name = var.dns_zone_resource_group
-}
-
-resource "azurerm_dns_a_record" "api" {
-  name                = var.api_subdomain
-  zone_name           = data.azurerm_dns_zone.main.name
-  resource_group_name = data.azurerm_dns_zone.main.resource_group_name
-  ttl                 = 300
-  records             = [azurerm_public_ip.main.ip_address]
-}
-
-
 # Domain scraperagent.eu is managed on Scaleway DNS
-# A record: api.scraperagent.eu → Azure VM public IP
-# CNAME: scraperagent.eu → cname.vercel-dns.com (for Vercel frontend)
+# CNAME: scraperagent.eu → cname.vercel-dns.com (configured in Scaleway console)
+
+resource "scaleway_domain_record" "api" {
+  dns_zone = var.dns_zone
+  name     = "api"
+  type     = "A"
+  data     = scaleway_instance_ip.main.address
+  ttl      = 300
+}

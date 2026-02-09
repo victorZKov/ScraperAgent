@@ -1,14 +1,14 @@
 terraform {
   required_version = ">= 1.5"
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+    scaleway = {
+      source  = "scaleway/scaleway"
+      version = "~> 2.40"
     }
   }
 }
 
-provider "azurerm" {
-  features {}
-  subscription_id = "ec654428-81d7-4dcd-8ba8-5b8f632bec29"
+provider "scaleway" {
+  zone   = var.zone
+  region = var.region
 }

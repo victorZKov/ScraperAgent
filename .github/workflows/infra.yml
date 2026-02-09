@@ -7,10 +7,11 @@ on:
     paths: ["infra/**"]
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+  SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+  SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
 
 jobs:
   plan:
@@ -27,17 +28,13 @@ jobs:
           terraform_version: "1.7"
 
       - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="client_id=${ARM_CLIENT_ID}" \
-            -backend-config="client_secret=${ARM_CLIENT_SECRET}" \
-            -backend-config="subscription_id=${ARM_SUBSCRIPTION_ID}" \
-            -backend-config="tenant_id=${ARM_TENANT_ID}"
+        run: terraform init
 
       - name: Terraform Plan
         run: terraform plan -var-file=production.tfvars -out=tfplan
         env:
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+          TF_VAR_postgres_password: ${{ secrets.DB_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -66,14 +63,10 @@ jobs:
           path: infra
 
       - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="client_id=${ARM_CLIENT_ID}" \
-            -backend-config="client_secret=${ARM_CLIENT_SECRET}" \
-            -backend-config="subscription_id=${ARM_SUBSCRIPTION_ID}" \
-            -backend-config="tenant_id=${ARM_TENANT_ID}"
+        run: terraform init
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         env:
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+          TF_VAR_postgres_password: ${{ secrets.DB_PASSWORD }}

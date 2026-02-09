@@ -31,27 +31,8 @@ services:
       retries: 3
       start_period: 15s
     depends_on:
-      postgres:
-        condition: service_healthy
       searxng:
         condition: service_started
-    networks:
-      - scraperagent
-
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-scraperagent}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB:-scraperagent}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scraperagent}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - scraperagent
 
@@ -64,7 +45,6 @@ services:
       - scraperagent
 
 volumes:
-  pgdata:
   caddy_data:
   caddy_config:
 
