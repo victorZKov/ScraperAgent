@@ -1,4 +1,5 @@
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Azure;
@@ -153,12 +154,16 @@ public class MarketAIService : IMarketAIService
         return (fallbackClient, deployment);
     }
 
-    private static OpenAIClient CreateClient(string provider, string endpoint, string apiKey)
+    private OpenAIClient CreateClient(string provider, string endpoint, string apiKey)
     {
         return provider switch
         {
             "scaleway" or "openai-compatible" =>
-                new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions { Endpoint = new Uri(endpoint) }),
+                new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions
+                {
+                    Endpoint = new Uri(endpoint),
+                    NetworkTimeout = TimeSpan.FromMinutes(10),
+                }),
             _ => // "azure-openai", "azure-foundry", etc.
                 new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey))
         };
@@ -241,7 +246,8 @@ public class MarketAIService : IMarketAIService
             if (!isReasoningModel)
                 options.Temperature = 0.4f;
 
-            _logger.LogInformation("Calling AI model (deployment: {Deployment})...", deploymentName);
+            _logger.LogInformation("Calling AI model (deployment: {Deployment}, provider: {Provider}, endpoint: {Endpoint}, useAzure: {UseAzure})...",
+                deploymentName, model?.Provider ?? "azure-fallback", model?.Endpoint ?? "appsettings", useAzure);
             var response = await chatClient.CompleteChatAsync(messages, options);
             var content = response.Value.Content[0].Text;
 
@@ -249,6 +255,27 @@ public class MarketAIService : IMarketAIService
                 domain, content.Length, response.Value.FinishReason);
 
             return ParseAIResponse(content, tweets);
+        }
+        catch (ClientResultException cre)
+        {
+            _logger.LogError(cre, "AI API request failed. Status: {Status}, Provider: {Provider}, Endpoint: {Endpoint}, Model: {Model}",
+                cre.Status, model?.Provider, model?.Endpoint, deploymentName);
+            // Log the raw response for debugging
+            var rawResponse = cre.GetRawResponse();
+            if (rawResponse != null)
+            {
+                _logger.LogError("Response headers: {Headers}", string.Join("; ", rawResponse.Headers.Select(h => $"{h.Key}={h.Value}")));
+                try
+                {
+                    var body = rawResponse.Content?.ToString();
+                    if (!string.IsNullOrEmpty(body))
+                        _logger.LogError("Response body: {Body}", body);
+                }
+                catch { }
+            }
+            var fallback = GetDefaultAnalysis(tweets, domain);
+            fallback.RawAIResponse = $"AI ERROR: {cre.GetType().Name}: Status {cre.Status} - {cre.Message}";
+            return fallback;
         }
         catch (Exception ex)
         {

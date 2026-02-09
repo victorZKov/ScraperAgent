@@ -9,7 +9,6 @@ public static class DefaultExpertAccounts
     {
         // TV / Media Analysts
         new() { Handle = "jimcramer", DisplayName = "Jim Cramer", Category = "TV Analyst", IsVerified = true },
-        new() { Handle = "carlquintanilla", DisplayName = "Carl Quintanilla", Category = "TV Analyst", IsVerified = true },
         new() { Handle = "lisaabramowicz1", DisplayName = "Lisa Abramowicz", Category = "TV Analyst", IsVerified = true },
 
         // Breaking Financial News

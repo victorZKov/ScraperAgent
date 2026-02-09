@@ -156,61 +156,61 @@ public static class DatabaseSeeder
 
     private static async Task SeedAdditionalExpertsAsync(ScraperAgentDbContext dbContext, ILogger? logger)
     {
-        var additionalExperts = new List<(string Handle, string DisplayName, string Category, string Domain)>
+        var additionalExperts = new List<(string Handle, string DisplayName, string Category, string Domain, int Weight, bool IsContrarian)>
         {
-            // Additional market experts
-            ("SquawkCNBC", "Squawk Box CNBC", "financial_news", "market"),
-            ("MarketCurrents", "Market Currents", "financial_news", "market"),
-            ("StockMKTNewz", "Stock Market News", "financial_news", "market"),
-            ("LiveSquawk", "LiveSquawk", "financial_news", "market"),
-            ("zaborsky_jake", "Jake Zaborsky", "market_analyst", "market"),
-            ("BreakoutPoint", "Breakout Point", "market_analyst", "market"),
-            ("LizAnnSonders", "Liz Ann Sonders", "market_analyst", "market"),
-            ("haborlern", "Henry Blodget", "market_analyst", "market"),
+            // Additional market experts - financial news
+            ("SquawkCNBC", "Squawk Box CNBC", "financial_news", "market", 5, false),
+            ("MarketCurrents", "Market Currents", "financial_news", "market", 5, false),
+            ("StockMKTNewz", "Stock Market News", "financial_news", "market", 5, false),
+
+            // Market analysts
+            ("LizAnnSonders", "Liz Ann Sonders", "market_analyst", "market", 5, false),
+            ("CyclesFan", "CyclesFan", "market_analyst", "market", 5, false),
+            ("yuriymatso", "Yuriy Matso", "market_analyst", "market", 7, false),
+            ("HenrikZeberg", "Henrik Zeberg", "market_analyst", "market", 6, false),
+            ("DaveHcontrarian", "Dave H Contrarian", "market_analyst", "market", 5, false),
 
             // Traders & swing traders
-            ("ChartMasterSara", "ChartMasterSara", "trader", "market"),
-            ("Basssem666", "Basssem", "trader", "market"),
-            ("therealmorph835", "Morph", "trader", "market"),
-            ("vandy_trades", "Vandy Trades", "trader", "market"),
-            ("KGBULLANDBEAR", "KG Bull and Bear", "trader", "market"),
-            ("Team2Trading", "Team2Trading", "trader", "market"),
-            ("TradingWarz", "TradingWarz", "trader", "market"),
-            ("PKDayTrading1", "PK Day Trading", "trader", "market"),
-            ("JohnLoc18", "JohnLoc", "trader", "market"),
-            ("SuperLuckeee", "SuperLuckeee", "trader", "market"),
-            ("EliteOptions2", "Elite Options", "options_trader", "market"),
-            ("CastilloTrading", "Castillo Trading", "trader", "market"),
-            ("SwingTraderQ", "SwingTraderQ", "trader", "market"),
-            ("AdamMancini4", "Adam Mancini", "trader", "market"),
-            ("IncomeSharks", "IncomeSharks", "trader", "market"),
-            ("TriggerTrades", "Trigger Trades", "trader", "market"),
-            ("CyclesFan", "CyclesFan", "market_analyst", "market"),
-            ("yuriymatso", "Yuriy Matso", "market_analyst", "market"),
-            ("HenrikZeberg", "Henrik Zeberg", "market_analyst", "market"),
-            ("markminervini", "Mark Minervini", "trader", "market"),
-            ("GregaHorvatFX", "Grega Horvat", "trader", "market"),
-            ("The_RockTrading", "The Rock Trading", "trader", "market"),
-            ("ShortSeller", "ShortSeller", "trader", "market"),
-            ("DaveHcontrarian", "Dave H Contrarian", "market_analyst", "market"),
+            ("AdamMancini4", "Adam Mancini", "trader", "market", 7, false),
+            ("Basssem666", "Basssem", "trader", "market", 5, true),
+            ("CastilloTrading", "Castillo Trading", "trader", "market", 4, false),
+            ("ChartMasterSara", "ChartMasterSara", "trader", "market", 5, false),
+            ("GregaHorvatFX", "Grega Horvat", "trader", "market", 5, false),
+            ("IncomeSharks", "IncomeSharks", "trader", "market", 9, false),
+            ("JohnLoc18", "JohnLoc", "trader", "market", 5, false),
+            ("KGBULLANDBEAR", "KG Bull and Bear", "trader", "market", 5, false),
+            ("markminervini", "Mark Minervini", "trader", "market", 7, false),
+            ("PKDayTrading1", "PK Day Trading", "trader", "market", 7, false),
+            ("ShortSeller", "ShortSeller", "trader", "market", 5, true),
+            ("SuperLuckeee", "SuperLuckeee", "trader", "market", 7, false),
+            ("SwingTraderQ", "SwingTraderQ", "trader", "market", 5, false),
+            ("Team2Trading", "Team2Trading", "trader", "market", 5, false),
+            ("The_RockTrading", "The Rock Trading", "trader", "market", 8, false),
+            ("therealmorph835", "Morph", "trader", "market", 8, false),
+            ("TradingWarz", "TradingWarz", "trader", "market", 5, false),
+            ("TriggerTrades", "Trigger Trades", "trader", "market", 7, true),
+            ("vandy_trades", "Vandy Trades", "trader", "market", 8, false),
+
+            // Options trader
+            ("EliteOptions2", "Elite Options", "options_trader", "market", 9, false),
 
             // Crypto traders
-            ("crypto_caesar1", "Crypto Caesar", "crypto_trader", "crypto"),
-            ("EmperorBTC", "EmperorBTC", "crypto_trader", "crypto"),
+            ("crypto_caesar1", "Crypto Caesar", "crypto_trader", "crypto", 5, false),
+            ("EmperorBTC", "EmperorBTC", "crypto_trader", "crypto", 5, false),
 
             // Additional crypto experts
-            ("zachxbt", "ZachXBT", "crypto_analyst", "crypto"),
-            ("SatoshiClub", "Satoshi Club", "crypto_community", "crypto"),
-            ("CryptoCapo_", "Capo of Crypto", "crypto_analyst", "crypto"),
-            ("The_Cryptonomist", "The Cryptonomist", "crypto_news", "crypto"),
-            ("caborneio", "Carl Borneio", "crypto_analyst", "crypto"),
-            ("crypto_birb", "Crypto Birb", "crypto_analyst", "crypto"),
-            ("EmberCN", "EmberCN", "crypto_analyst", "crypto"),
-            ("CryptoHayes", "Arthur Hayes", "crypto_analyst", "crypto"),
+            ("zachxbt", "ZachXBT", "crypto_analyst", "crypto", 5, false),
+            ("SatoshiClub", "Satoshi Club", "crypto_community", "crypto", 5, false),
+            ("CryptoCapo_", "Capo of Crypto", "crypto_analyst", "crypto", 5, false),
+            ("The_Cryptonomist", "The Cryptonomist", "crypto_news", "crypto", 5, false),
+            ("caborneio", "Carl Borneio", "crypto_analyst", "crypto", 5, false),
+            ("crypto_birb", "Crypto Birb", "crypto_analyst", "crypto", 5, false),
+            ("EmberCN", "EmberCN", "crypto_analyst", "crypto", 5, false),
+            ("CryptoHayes", "Arthur Hayes", "crypto_analyst", "crypto", 5, false),
         };
 
         var addedCount = 0;
-        foreach (var (handle, displayName, category, domain) in additionalExperts)
+        foreach (var (handle, displayName, category, domain, weight, isContrarian) in additionalExperts)
         {
             var exists = await dbContext.Experts
                 .AnyAsync(e => e.Handle == handle && e.Domain == domain);
@@ -224,6 +224,8 @@ public static class DatabaseSeeder
                     Category = category,
                     IsVerified = true,
                     Domain = domain,
+                    Weight = weight,
+                    IsContrarian = isContrarian,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
