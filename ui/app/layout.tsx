@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'ScraperAgent - Market Intelligence',
   description: 'AI-powered market analysis from expert tweets',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({
