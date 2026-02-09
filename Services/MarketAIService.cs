@@ -307,6 +307,8 @@ Expert metadata: Each expert has a Weight (1-10, higher = more influential), an 
 
 For each trading_signal, include source_tweet_urls as full URLs. Each tweet has a compact reference like T:1234567890 — construct the full URL as https://x.com/{expert_handle}/status/{tweet_id}.
 
+DOMAIN SCOPE: This analysis is for TRADITIONAL EQUITY MARKETS ONLY. Your trading_signals must ONLY contain stock/ETF tickers (e.g. SPY, TSLA, AAPL, NVDA, QQQ). Do NOT include cryptocurrency tokens (BTC, ETH, SOL, etc.) or commodity/precious metal tickers (GLD, SLV, etc.) in trading_signals or sector_breakdown. If experts mention crypto or commodities, you may reference them briefly in the executive_summary for context, but never as standalone trading signals.
+
 IMPORTANT: This analysis is based on social media sentiment, not fundamental or technical analysis. Always emphasize that users should perform their own due diligence before trading. This is for informational purposes only, not financial advice.";
     }
 
@@ -331,6 +333,8 @@ Expert metadata: Each expert has a Weight (1-10, higher = more influential), an 
 
 For each trading_signal, include source_tweet_urls with the actual tweet URLs that support the signal. Each tweet in the data includes its URL — reference them directly.
 
+DOMAIN SCOPE: This analysis is for CRYPTOCURRENCY AND DIGITAL ASSETS ONLY. Your trading_signals must ONLY contain crypto tokens and coins (e.g. BTC, ETH, SOL, XRP, DOGE). Do NOT include traditional stock tickers (SPY, TSLA, AAPL, etc.) or commodity ETFs (GLD, SLV, etc.) in trading_signals or sector_breakdown. If experts mention stocks, you may reference them briefly for macro context, but never as standalone trading signals.
+
 IMPORTANT: Crypto markets operate 24/7 with extreme volatility. This analysis is based on social media sentiment, not on-chain analytics or technical analysis. Always emphasize DYOR. Never invest more than you can afford to lose. This is for informational purposes only, not financial advice.";
     }
 
@@ -340,8 +344,25 @@ IMPORTANT: Crypto markets operate 24/7 with extreme volatility. This analysis is
             .GroupBy(t => t.AuthorHandle)
             .OrderByDescending(g => g.Sum(t => t.LikeCount + t.RetweetCount));
 
+        // Known crypto tickers to filter out from market reports (and vice versa)
+        var cryptoTickers = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "BTC", "ETH", "SOL", "XRP", "DOGE", "ADA", "DOT", "AVAX", "MATIC", "LINK",
+            "UNI", "AAVE", "LTC", "BCH", "ATOM", "NEAR", "FTM", "APT", "SUI", "ARB",
+            "OP", "INJ", "TIA", "SEI", "JUP", "PEPE", "SHIB", "WIF", "BONK", "RENDER",
+            "FET", "TAO", "ONDO", "HBAR", "XLM", "ALGO", "VET", "FIL", "ICP", "IMX",
+            "BNB", "TRX", "TON", "MANA", "SAND", "AXS", "CRV", "MKR", "COMP", "SNX"
+        };
+
         var allCashTags = tweets.Tweets
             .SelectMany(t => t.CashTags)
+            .Where(tag =>
+            {
+                var clean = tag.TrimStart('$').ToUpperInvariant();
+                return domain == AnalysisDomain.Crypto
+                    ? cryptoTickers.Contains(clean)   // Crypto: only keep known crypto tickers
+                    : !cryptoTickers.Contains(clean);  // Market: exclude known crypto tickers
+            })
             .GroupBy(c => c)
             .OrderByDescending(g => g.Count())
             .Select(g => $"{g.Key} ({g.Count()} mentions)")
