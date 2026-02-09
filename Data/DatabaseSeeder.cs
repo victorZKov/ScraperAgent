@@ -111,15 +111,38 @@ public static class DatabaseSeeder
                     Endpoint = endpoint,
                     ApiKey = apiKey,
                     DeploymentName = deployment,
+                    IsDefault = false,
+                    Domain = "all",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+                logger?.LogInformation("Seeded AI model: {Deployment} (azure-openai)", deployment);
+            }
+
+            // Seed Scaleway GPT-OSS 120B (default model)
+            var scwApiKey = configuration["ScalewayAI:ApiKey"]
+                            ?? configuration["ScalewayAI__ApiKey"]
+                            ?? "";
+            if (!string.IsNullOrEmpty(scwApiKey))
+            {
+                dbContext.AIModels.Add(new AIModelEntity
+                {
+                    Name = "GPT-OSS 120B",
+                    Provider = "scaleway",
+                    Endpoint = "https://api.scaleway.ai/v1/",
+                    ApiKey = scwApiKey,
+                    DeploymentName = "gpt-oss-120b",
                     IsDefault = true,
                     Domain = "all",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 });
-                await dbContext.SaveChangesAsync();
-                logger?.LogInformation("Seeded default AI model: {Deployment}", deployment);
+                logger?.LogInformation("Seeded AI model: GPT-OSS 120B (scaleway, default)");
             }
+
+            await dbContext.SaveChangesAsync();
         }
 
         // Seed default schedules if table is empty
