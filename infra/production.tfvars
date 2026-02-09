@@ -1,6 +1,0 @@
-zone          = "nl-ams-1"
-region        = "nl-ams"
-instance_type = "DEV1-S"
-db_node_type  = "DB-DEV-S"
-api_domain    = "api.scraperagent.eu"
-dns_zone      = "scraperagent.eu"

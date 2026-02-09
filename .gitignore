@@ -28,15 +28,7 @@ ScraperAgent.AppHost/obj/
 
 # Docker
 *.tar
-caddy_data/
-caddy_config/
-
-# Terraform
-infra/.terraform/
-infra/.terraform.lock.hcl
-infra/*.tfstate
-infra/*.tfstate.backup
-infra/*.tfplan
+pgdata/
 
 # Node
 node_modules/

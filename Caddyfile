@@ -1,3 +1,0 @@
-api.scraperagent.eu {
-	reverse_proxy api:5100
-}
