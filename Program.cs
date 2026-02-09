@@ -33,12 +33,22 @@ builder.Services.Configure<ExpertAccountsOptions>(builder.Configuration.GetSecti
 builder.Services.Configure<CryptoExpertAccountsOptions>(builder.Configuration.GetSection(CryptoExpertAccountsOptions.SectionName));
 builder.Services.Configure<MollieOptions>(builder.Configuration.GetSection(MollieOptions.SectionName));
 
-// HttpClient for tweet scraping
+// HttpClient for tweet scraping (with optional proxy for residential IP)
+var twitterProxy = builder.Configuration["TwitterProxy"];
 builder.Services.AddHttpClient("TwitterScraper", client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
     client.Timeout = TimeSpan.FromSeconds(30);
+}).ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler();
+    if (!string.IsNullOrEmpty(twitterProxy))
+    {
+        handler.Proxy = new System.Net.WebProxy(twitterProxy);
+        handler.UseProxy = true;
+    }
+    return handler;
 });
 
 // Tweet Scraper (configurable: "mock" or "live")

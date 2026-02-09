@@ -1,22 +1,16 @@
+# docker-compose.home.yml
+# Run ScraperAgent backend on a home Windows PC with Docker Desktop.
+# Exposes the API via Cloudflare Tunnel (no port forwarding needed).
+#
+# Usage:
+#   1. Copy .env.home.template → .env  and fill in your values
+#   2. docker compose -f docker-compose.home.yml up -d --build
+#
 services:
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      api:
-        condition: service_healthy
-    networks:
-      - scraperagent
-
   api:
-    image: ghcr.io/${GITHUB_REPOSITORY_LOWER}:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env
@@ -24,9 +18,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5100
       - SearXNG__BaseUrl=http://searxng:8080
-      - TwitterProxy=${TWITTER_PROXY:-}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5100/api/version"]
       interval: 30s
@@ -47,9 +38,17 @@ services:
     networks:
       - scraperagent
 
-volumes:
-  caddy_data:
-  caddy_config:
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - scraperagent
 
 networks:
   scraperagent:
