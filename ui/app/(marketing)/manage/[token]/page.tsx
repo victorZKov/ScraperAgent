@@ -274,7 +274,7 @@ export default function ManagePage() {
         <div className="p-5 rounded-xl border border-blue-500/30 bg-blue-500/5 mb-6">
           <h2 className="text-sm font-semibold text-text-primary mb-2">Upgrade to Paid</h2>
           <p className="text-xs text-text-secondary mb-4">
-            ${PRICING.monthlyPrice}/month for unlimited daily reports. Cancel anytime.
+            €{PRICING.monthlyPrice}/month for unlimited daily reports. Cancel anytime.
           </p>
           <button
             onClick={handleUpgrade}
