@@ -56,6 +56,7 @@ public class ReportEmailService : IReportEmailService
         try
         {
             using var client = new SmtpClient();
+            client.Timeout = 15_000; // 15 second timeout to prevent hanging
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
             var secureSocketOptions = _emailOptions.Smtp.EnableSsl
@@ -103,6 +104,7 @@ public class ReportEmailService : IReportEmailService
         try
         {
             using var client = new SmtpClient();
+            client.Timeout = 15_000; // 15 second timeout to prevent hanging
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
             var secureSocketOptions = _emailOptions.Smtp.EnableSsl

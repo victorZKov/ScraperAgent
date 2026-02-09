@@ -60,8 +60,12 @@ public class SubscriberService : ISubscriberService
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.CancelledAt = null;
                 await _db.SaveChangesAsync();
-                await SendRegistrationNotificationAsync(existing, isReactivation: true);
-                await SendWelcomeWithLatestReportAsync(existing);
+                // Fire-and-forget: don't block the HTTP response on email delivery
+                _ = Task.Run(async () =>
+                {
+                    await SendRegistrationNotificationAsync(existing, isReactivation: true);
+                    await SendWelcomeWithLatestReportAsync(existing);
+                });
                 return existing;
             }
             throw new InvalidOperationException("A subscriber with this email already exists.");
@@ -87,8 +91,12 @@ public class SubscriberService : ISubscriberService
         await _db.SaveChangesAsync();
         _logger.LogInformation("Created trial subscriber {Email} with token {Token}", email, subscriber.ManagementToken);
 
-        await SendRegistrationNotificationAsync(subscriber, isReactivation: false);
-        await SendWelcomeWithLatestReportAsync(subscriber);
+        // Fire-and-forget: don't block the HTTP response on email delivery
+        _ = Task.Run(async () =>
+        {
+            await SendRegistrationNotificationAsync(subscriber, isReactivation: false);
+            await SendWelcomeWithLatestReportAsync(subscriber);
+        });
 
         // Auto-pause registration at every milestone (100, 200, 300...)
         var totalCount = await _db.Subscribers.CountAsync();
