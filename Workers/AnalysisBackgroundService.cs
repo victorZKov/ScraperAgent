@@ -134,35 +134,44 @@ public class AnalysisBackgroundService : BackgroundService
             }).ToList()
         };
 
-        // 5. Send email (with retry for transient DB issues)
-        List<string> recipients;
+        // 5. Send email to all recipients (email_recipients + subscribers tables, filtered by domain)
+        var subscriberService = scope.ServiceProvider.GetRequiredService<ISubscriberService>();
+        var allRecipients = new List<string>();
+
         try
         {
-            recipients = await configService.GetRecipientEmailsAsync();
-            _logger.LogInformation("Fetched {Count} email recipients from DB", recipients.Count);
-
-            if (!recipients.Any())
-            {
-                // Retry once after a short delay — transient DB connection issues can return empty
-                _logger.LogWarning("No recipients returned on first attempt, retrying in 2s...");
-                await Task.Delay(2000, ct);
-                recipients = await configService.GetRecipientEmailsAsync();
-                _logger.LogInformation("Retry fetched {Count} email recipients", recipients.Count);
-            }
+            var configRecipients = await configService.GetRecipientEmailsAsync(domainStr);
+            _logger.LogInformation("Fetched {Count} email recipients from email_recipients table for domain '{Domain}'",
+                configRecipients.Count, domainStr);
+            allRecipients.AddRange(configRecipients);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch email recipients: {Message}", ex.Message);
-            recipients = new List<string>();
+            _logger.LogError(ex, "Failed to fetch email_recipients: {Message}", ex.Message);
         }
 
-        if (recipients.Any())
+        try
         {
-            _logger.LogInformation("Step 4: Sending email to {RecipientCount} recipients: {Recipients}",
-                recipients.Count, string.Join(", ", recipients));
-            var emailSent = await emailService.SendMarketReportAsync(report, recipients);
+            var subscriberEmails = await subscriberService.GetSubscriberEmailsForReportAsync(domainStr);
+            _logger.LogInformation("Fetched {Count} subscriber emails for domain '{Domain}'",
+                subscriberEmails.Count, domainStr);
+            allRecipients.AddRange(subscriberEmails);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch subscriber emails: {Message}", ex.Message);
+        }
+
+        // Deduplicate (same email could be in both tables)
+        allRecipients = allRecipients.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        if (allRecipients.Any())
+        {
+            _logger.LogInformation("Step 4: Sending email to {RecipientCount} total recipients: {Recipients}",
+                allRecipients.Count, string.Join(", ", allRecipients));
+            var emailSent = await emailService.SendMarketReportAsync(report, allRecipients);
             report.EmailSent = emailSent;
-            report.EmailRecipients = recipients;
+            report.EmailRecipients = allRecipients;
 
             if (emailSent)
                 _logger.LogInformation("Email sent successfully");
@@ -171,31 +180,23 @@ public class AnalysisBackgroundService : BackgroundService
         }
         else
         {
-            _logger.LogWarning("No recipients configured - skipping email");
+            _logger.LogWarning("No recipients found in either table for domain '{Domain}' - skipping email", domainStr);
         }
 
-        // 5b. Send to newsletter subscribers
+        // Increment trial usage for trial subscribers
         try
         {
-            var subscriberService = scope.ServiceProvider.GetRequiredService<ISubscriberService>();
-            var subscriberEmails = await subscriberService.GetSubscriberEmailsForReportAsync(domainStr);
-            if (subscriberEmails.Any())
+            var trialIds = await subscriberService.GetTrialSubscriberIdsForReportAsync(domainStr);
+            foreach (var id in trialIds)
             {
-                _logger.LogInformation("Sending report to {Count} newsletter subscribers", subscriberEmails.Count);
-                await emailService.SendMarketReportAsync(report, subscriberEmails);
-
-                // Increment trial usage for trial subscribers
-                var trialIds = await subscriberService.GetTrialSubscriberIdsForReportAsync(domainStr);
-                foreach (var id in trialIds)
-                {
-                    await subscriberService.IncrementTrialUsageAsync(id);
-                }
-                _logger.LogInformation("Incremented trial usage for {Count} trial subscribers", trialIds.Count);
+                await subscriberService.IncrementTrialUsageAsync(id);
             }
+            if (trialIds.Any())
+                _logger.LogInformation("Incremented trial usage for {Count} trial subscribers", trialIds.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to send report to newsletter subscribers (non-fatal)");
+            _logger.LogWarning(ex, "Failed to increment trial usage (non-fatal)");
         }
 
         // 6. Save report

@@ -25,6 +25,12 @@ public record SubscriberResponse(
     string ManagementToken
 );
 
+public record AdminUpdateSubscriberRequest(
+    string? Name,
+    string? DomainPreference,
+    string? Status
+);
+
 public record SubscriberStats(
     int TotalSubscribers,
     int TrialSubscribers,

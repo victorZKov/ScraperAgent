@@ -25,6 +25,7 @@ public static class SubscriptionEndpoints
         // Admin endpoints
         var admin = app.MapGroup("/api/config");
         admin.MapGet("/subscribers", ListSubscribers);
+        admin.MapPut("/subscribers/{id:int}", AdminUpdateSubscriber);
         admin.MapGet("/subscribers/stats", GetSubscriberStats);
         admin.MapGet("/registration/status", GetRegistrationStatus);
         admin.MapPost("/registration/resume", ResumeRegistration);
@@ -252,6 +253,35 @@ public static class SubscriptionEndpoints
     }
 
     // ── Admin endpoints ───────────────────────────────────────────────
+
+    private static async Task<IResult> AdminUpdateSubscriber(
+        int id,
+        AdminUpdateSubscriberRequest request,
+        ISubscriberService subscriberService,
+        ILoggerFactory loggerFactory)
+    {
+        var logger = Log(loggerFactory);
+        try
+        {
+            if (request.DomainPreference is not null and not ("market" or "crypto" or "both"))
+                return Results.BadRequest(new { success = false, error = "DomainPreference must be 'market', 'crypto', or 'both'." });
+
+            if (request.Status is not null and not ("trial" or "active" or "cancelled" or "expired"))
+                return Results.BadRequest(new { success = false, error = "Status must be 'trial', 'active', 'cancelled', or 'expired'." });
+
+            var subscriber = await subscriberService.AdminUpdateSubscriberAsync(id, request.Name, request.DomainPreference, request.Status);
+            if (subscriber == null)
+                return Results.NotFound(new { success = false, error = "Subscriber not found." });
+
+            logger.LogInformation("Admin updated subscriber {Id}: domain={Domain}, status={Status}", id, request.DomainPreference, request.Status);
+            return Results.Ok(new { success = true, subscriber = ToResponse(subscriber) });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error updating subscriber {Id}", id);
+            return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+        }
+    }
 
     private static async Task<IResult> ListSubscribers(
         ISubscriberService subscriberService,

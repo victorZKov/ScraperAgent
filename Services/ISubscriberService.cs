@@ -16,6 +16,7 @@ public interface ISubscriberService
     Task<int> IncrementTrialUsageAsync(int subscriberId);
     Task<List<string>> GetSubscriberEmailsForReportAsync(string domain);
     Task<List<int>> GetTrialSubscriberIdsForReportAsync(string domain);
+    Task<SubscriberEntity?> AdminUpdateSubscriberAsync(int id, string? name, string? domainPreference, string? status);
     Task<List<SubscriberEntity>> GetAllSubscribersAsync();
     Task<SubscriberStats> GetSubscriberStatsAsync();
     Task<bool> IsRegistrationPausedAsync();

@@ -126,6 +126,20 @@ public class SubscriberService : ISubscriberService
         return subscriber;
     }
 
+    public async Task<SubscriberEntity?> AdminUpdateSubscriberAsync(int id, string? name, string? domainPreference, string? status)
+    {
+        var subscriber = await _db.Subscribers.FindAsync(id);
+        if (subscriber == null) return null;
+
+        if (name != null) subscriber.Name = name;
+        if (domainPreference != null) subscriber.DomainPreference = domainPreference;
+        if (status != null) subscriber.Status = status;
+        subscriber.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        _logger.LogInformation("Admin updated subscriber {Id} ({Email})", id, subscriber.Email);
+        return subscriber;
+    }
+
     public async Task<bool> CancelSubscriptionAsync(string token)
     {
         var subscriber = await GetByManagementTokenAsync(token);

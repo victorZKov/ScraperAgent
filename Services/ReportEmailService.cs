@@ -295,15 +295,97 @@ public class ReportEmailService : IReportEmailService
     </div>";
         }
 
-        var sectorChartHtml = !string.IsNullOrEmpty(sectorChartUrl)
-            ? $@"
+        var sectorHtml = "";
+        if (data.SectorBreakdown.Any())
+        {
+            var sectorCardsHtml = string.Join("", data.SectorBreakdown.Select(s =>
+            {
+                var sColor = s.Sentiment switch
+                {
+                    MarketSentiment.VeryBullish or MarketSentiment.Bullish => "#2e7d32",
+                    MarketSentiment.Neutral => "#f57f17",
+                    _ => "#c62828"
+                };
+                var sEmoji = s.Sentiment switch
+                {
+                    MarketSentiment.VeryBullish => "🟢🟢",
+                    MarketSentiment.Bullish => "🟢",
+                    MarketSentiment.Neutral => "🟡",
+                    MarketSentiment.Bearish => "🔴",
+                    MarketSentiment.VeryBearish => "🔴🔴",
+                    _ => "⚪"
+                };
+                var tickersHtml = s.KeyTickers.Any()
+                    ? string.Join(" ", s.KeyTickers.Select(t => $"<span style='background: #e8eaf6; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px;'>${t}</span>"))
+                    : "";
+                return $@"
+            <div style='border: 1px solid #e0e0e0; border-left: 4px solid {sColor}; border-radius: 0 8px 8px 0; padding: 12px; margin-bottom: 10px;'>
+                <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                    <strong>{s.Sector}</strong>
+                    <span style='color: {sColor}; font-weight: bold;'>{sEmoji} {s.Sentiment}</span>
+                </div>
+                <p style='font-size: 13px; color: #555; margin: 4px 0;'>{s.Summary}</p>
+                <div>{tickersHtml}</div>
+            </div>";
+            }));
+
+            var chartHtml = !string.IsNullOrEmpty(sectorChartUrl)
+                ? $@"<div class='chart'><img src='{sectorChartUrl}' alt='Sector Sentiment Chart' /></div>"
+                : "";
+
+            sectorHtml = $@"
     <div class='section'>
-        <h2>Sector Sentiment</h2>
-        <div class='chart'>
-            <img src='{sectorChartUrl}' alt='Sector Sentiment Chart' />
-        </div>
-    </div>"
-            : "";
+        <h2>Sector Breakdown</h2>
+        {chartHtml}
+        {sectorCardsHtml}
+    </div>";
+        }
+
+        var marketDataHtml = "";
+        if (report.MarketData.Any())
+        {
+            marketDataHtml = $@"
+    <div class='section'>
+        <h2>Market Data</h2>
+        <table class='table'>
+            <tr>
+                <th>Symbol</th>
+                <th>Price</th>
+                <th>24h Change</th>
+                <th>Volume</th>
+            </tr>
+            {string.Join("", report.MarketData.Select(m =>
+            {
+                var changeColor = m.Change24hPercent >= 0 ? "#2e7d32" : "#c62828";
+                var changeSign = m.Change24hPercent >= 0 ? "+" : "";
+                return $@"
+            <tr>
+                <td><strong>${m.Symbol}</strong></td>
+                <td>{m.Price:N2}</td>
+                <td style='color: {changeColor}; font-weight: bold;'>{changeSign}{m.Change24hPercent:N2}%</td>
+                <td>{(m.Volume >= 1_000_000 ? $"{m.Volume / 1_000_000:N1}M" : $"{m.Volume:N0}")}</td>
+            </tr>";
+            }))}
+        </table>
+    </div>";
+        }
+
+        var webSourcesHtml = "";
+        if (report.WebSources.Any())
+        {
+            webSourcesHtml = $@"
+    <div class='section'>
+        <h2>News Sources</h2>
+        <p style='color: #666; font-size: 13px; margin-bottom: 12px;'>Recent headlines used to cross-reference expert sentiment.</p>
+        <ul style='list-style: none; padding: 0;'>
+            {string.Join("", report.WebSources.Select(s => $@"
+            <li style='margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px;'>
+                <a href='{s.Url}' style='color: #1565c0; text-decoration: none; font-weight: 600;'>{s.Title}</a>
+                <p style='font-size: 12px; color: #666; margin: 4px 0 0 0;'>{s.Snippet}</p>
+            </li>"))}
+        </ul>
+    </div>";
+        }
 
         var html = $@"
 <!DOCTYPE html>
@@ -379,13 +461,17 @@ public class ReportEmailService : IReportEmailService
 
     {signalsHtml}
 
-    {sectorChartHtml}
-
-    {expertSentimentsHtml}
+    {sectorHtml}
 
     {recommendationsHtml}
 
     {risksHtml}
+
+    {expertSentimentsHtml}
+
+    {marketDataHtml}
+
+    {webSourcesHtml}
 
     <div class='disclaimer'>
         <strong>Disclaimer:</strong> This report is generated automatically based on social media sentiment analysis and does not constitute financial advice.
@@ -517,6 +603,22 @@ ACTIONABLE RECOMMENDATIONS
 {string.Join("\n", data.Recommendations.OrderBy(r => r.Priority).Select(r => $"{r.Priority}. {r.Action} (Risk: {r.RiskLevel}, {r.Timeframe}) - {r.Reasoning}"))}"
             : "";
 
+        var sectorsText = data.SectorBreakdown.Any()
+            ? $@"
+
+SECTOR BREAKDOWN
+----------------
+{string.Join("\n", data.SectorBreakdown.Select(s => $"{s.Sector}: {s.Sentiment} — {s.Summary} [{string.Join(", ", s.KeyTickers.Select(t => $"${t}"))}]"))}"
+            : "";
+
+        var webSourcesText = report.WebSources.Any()
+            ? $@"
+
+NEWS SOURCES
+------------
+{string.Join("\n", report.WebSources.Select(s => $"- {s.Title}\n  {s.Url}"))}"
+            : "";
+
         return $@"
 {reportTitle}
 {report.GeneratedAt:MMMM dd, yyyy HH:mm} UTC
@@ -536,6 +638,12 @@ KEY THEMES
 ----------
 {string.Join("\n", data.KeyThemes.Select(t => $"- {t}"))}
 {signalsText}
+{sectorsText}
+{recsText}
+
+RISK FACTORS
+------------
+{string.Join("\n", data.RiskFactors.Select(r => $"- {r}"))}
 
 EXPERT ANALYSIS (BY EXPERT)
 ---------------------------
@@ -545,11 +653,7 @@ EXPERT ANALYSIS (BY EXPERT)
     var calls = e.NotableCalls.Any() ? $"\n  Notable calls: {string.Join(", ", e.NotableCalls)}" : "";
     return $"@{e.ExpertHandle}: {e.Sentiment} - {e.KeyTakeaway}{detail}{calls}";
 }))}
-
-RISK FACTORS
-------------
-{string.Join("\n", data.RiskFactors.Select(r => $"- {r}"))}
-{recsText}
+{webSourcesText}
 
 ---
 DISCLAIMER: This report is generated automatically based on social media sentiment analysis
