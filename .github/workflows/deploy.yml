@@ -19,7 +19,6 @@ on:
       - "docker-compose.prod.yml"
       - "Caddyfile"
       - "appsettings.json"
-      - "searxng/**"
 
 env:
   REGISTRY: ghcr.io
@@ -79,8 +78,9 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.prod.yml,Caddyfile,appsettings.json,searxng/"
+          source: "docker-compose.prod.yml,Caddyfile,appsettings.json"
           target: "/opt/scraperagent"
+          overwrite: true
 
       - name: Deploy
         uses: appleboy/ssh-action@v1
