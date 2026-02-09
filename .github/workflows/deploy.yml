@@ -115,4 +115,4 @@ jobs:
       - name: Health check
         run: |
           sleep 15
-          curl -sf https://api.scraperagent.victorz.cloud/api/version || echo "Warning: Health check failed (may need DNS propagation)"
+          curl -sf https://api.scraperagent.eu/api/version || echo "Warning: Health check failed (may need DNS propagation)"

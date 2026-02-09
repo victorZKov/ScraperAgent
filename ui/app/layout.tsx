@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'Kovimatic', url: 'https://kovimatic.ie' }],
   creator: 'Kovimatic',
   publisher: 'Kovimatic',
-  metadataBase: new URL('https://scraperagent.victorz.cloud'),
+  metadataBase: new URL('https://scraperagent.eu'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://scraperagent.victorz.cloud',
+    url: 'https://scraperagent.eu',
     siteName: 'ScraperAgent',
     title: 'ScraperAgent — AI-Powered Market Intelligence, Delivered Daily',
     description:

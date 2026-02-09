@@ -16,7 +16,7 @@ services:
       - ServiceBusConnection=${SERVICE_BUS_CONNECTION}
       - Finnhub__ApiKey=${FINNHUB_API_KEY}
       - SearXNG__BaseUrl=http://searxng:8080
-      - Email__FromEmail=noreply@victorz.cloud
+      - Email__FromEmail=noreply@scraperagent.eu
       - Email__FromName=Market Intelligence Agent
       - Email__Smtp__Host=smtp.tem.scaleway.com
       - Email__Smtp__Port=587

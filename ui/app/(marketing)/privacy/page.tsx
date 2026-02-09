@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-text-primary mb-2">Who We Are</h2>
           <p>
             ScraperAgent is operated by Kovimatic, a company registered in Ireland. Our website is
-            located at scraperagent.victorz.cloud. For any privacy-related inquiries, contact us at{' '}
+            located at scraperagent.eu. For any privacy-related inquiries, contact us at{' '}
             <a href="mailto:it@kovimatic.ie" className="text-blue-400 hover:text-blue-300 transition-colors">
               it@kovimatic.ie
             </a>.

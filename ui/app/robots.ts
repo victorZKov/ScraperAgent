@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/dashboard', '/settings', '/admin-login', '/reports', '/api/'],
       },
     ],
-    sitemap: 'https://scraperagent.victorz.cloud/sitemap.xml',
+    sitemap: 'https://scraperagent.eu/sitemap.xml',
   };
 }

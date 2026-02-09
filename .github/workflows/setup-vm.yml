@@ -48,7 +48,7 @@ jobs:
             Email__Smtp__Password=${{ secrets.SMTP_PASSWORD }}
             Finnhub__ApiKey=${{ secrets.FINNHUB_API_KEY }}
             Mollie__ApiKey=${{ secrets.MOLLIE_API_KEY }}
-            Mollie__WebhookBaseUrl=https://api.scraperagent.victorz.cloud
+            Mollie__WebhookBaseUrl=https://api.scraperagent.eu
             Mollie__RedirectBaseUrl=${{ secrets.MOLLIE_REDIRECT_BASE_URL }}
             TweetSource=live
             ReportRecipients=${{ secrets.REPORT_RECIPIENTS }}

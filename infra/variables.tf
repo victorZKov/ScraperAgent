@@ -30,7 +30,7 @@ variable "ssh_public_key" {
 variable "dns_zone_name" {
   description = "Existing DNS zone name"
   type        = string
-  default     = "victorz.cloud"
+  default     = "scraperagent.eu"
 }
 
 variable "dns_zone_resource_group" {

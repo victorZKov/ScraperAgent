@@ -1,3 +1,3 @@
-api.scraperagent.victorz.cloud {
+api.scraperagent.eu {
 	reverse_proxy api:5100
 }

@@ -12,5 +12,6 @@ resource "azurerm_dns_a_record" "api" {
 }
 
 
-# CNAME for scraperagent.victorz.cloud → cname.vercel-dns.com
-# Managed directly in Azure DNS (already exists outside Terraform state)
+# Domain scraperagent.eu is managed on Scaleway DNS
+# A record: api.scraperagent.eu → Azure VM public IP
+# CNAME: scraperagent.eu → cname.vercel-dns.com (for Vercel frontend)
