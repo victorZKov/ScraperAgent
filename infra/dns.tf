@@ -11,10 +11,6 @@ resource "azurerm_dns_a_record" "api" {
   records             = [azurerm_public_ip.main.ip_address]
 }
 
-resource "azurerm_dns_cname_record" "frontend" {
-  name                = "scraperagent"
-  zone_name           = data.azurerm_dns_zone.main.name
-  resource_group_name = data.azurerm_dns_zone.main.resource_group_name
-  ttl                 = 300
-  record              = "cname.vercel-dns.com"
-}
+
+# CNAME for scraperagent.victorz.cloud → cname.vercel-dns.com
+# Managed directly in Azure DNS (already exists outside Terraform state)

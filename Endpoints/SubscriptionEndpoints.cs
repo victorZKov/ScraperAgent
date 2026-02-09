@@ -26,6 +26,8 @@ public static class SubscriptionEndpoints
         var admin = app.MapGroup("/api/config");
         admin.MapGet("/subscribers", ListSubscribers);
         admin.MapGet("/subscribers/stats", GetSubscriberStats);
+        admin.MapGet("/registration/status", GetRegistrationStatus);
+        admin.MapPost("/registration/resume", ResumeRegistration);
 
         return app;
     }
@@ -283,6 +285,47 @@ public static class SubscriptionEndpoints
         catch (Exception ex)
         {
             Log(loggerFactory).LogError(ex, "Error getting subscriber stats");
+            return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+        }
+    }
+
+    private static async Task<IResult> GetRegistrationStatus(
+        ISubscriberService subscriberService,
+        ILoggerFactory loggerFactory)
+    {
+        try
+        {
+            var paused = await subscriberService.IsRegistrationPausedAsync();
+            var stats = await subscriberService.GetSubscriberStatsAsync();
+            return Results.Ok(new
+            {
+                success = true,
+                registrationPaused = paused,
+                totalSubscribers = stats.TotalSubscribers,
+                nextPauseMilestone = ((stats.TotalSubscribers / 100) + 1) * 100
+            });
+        }
+        catch (Exception ex)
+        {
+            Log(loggerFactory).LogError(ex, "Error getting registration status");
+            return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+        }
+    }
+
+    private static async Task<IResult> ResumeRegistration(
+        ISubscriberService subscriberService,
+        ILoggerFactory loggerFactory)
+    {
+        var logger = Log(loggerFactory);
+        try
+        {
+            await subscriberService.ResumeRegistrationAsync();
+            logger.LogInformation("Registration resumed by admin");
+            return Results.Ok(new { success = true, message = "Registration has been resumed." });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error resuming registration");
             return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
         }
     }

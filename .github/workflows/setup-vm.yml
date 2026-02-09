@@ -54,7 +54,7 @@ jobs:
             ReportRecipients=${{ secrets.REPORT_RECIPIENTS }}
             SearXNG__BaseUrl=http://searxng:8080
             ASPNETCORE_ENVIRONMENT=Production
-            GITHUB_REPOSITORY=${{ github.repository }}
+            GITHUB_REPOSITORY_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
             IMAGE_TAG=latest
             EOF
             chmod 600 .env

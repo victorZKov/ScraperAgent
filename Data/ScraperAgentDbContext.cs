@@ -16,6 +16,7 @@ public class ScraperAgentDbContext : DbContext
     public DbSet<ReportEntity> Reports => Set<ReportEntity>();
     public DbSet<ScheduleEntity> Schedules => Set<ScheduleEntity>();
     public DbSet<SubscriberEntity> Subscribers => Set<SubscriberEntity>();
+    public DbSet<AppSettingEntity> AppSettings => Set<AppSettingEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -176,6 +177,20 @@ public class ScraperAgentDbContext : DbContext
             entity.HasIndex(e => e.ManagementToken).IsUnique();
             entity.HasIndex(e => e.MollieCustomerId);
             entity.HasIndex(e => new { e.Status, e.DomainPreference });
+        });
+
+        modelBuilder.Entity<AppSettingEntity>(entity =>
+        {
+            entity.ToTable("app_settings");
+
+            entity.HasKey(e => e.Key);
+
+            entity.Property(e => e.Key)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Value)
+                .IsRequired()
+                .HasMaxLength(500);
         });
 
         modelBuilder.Entity<ScheduleEntity>(entity =>

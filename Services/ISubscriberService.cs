@@ -18,4 +18,6 @@ public interface ISubscriberService
     Task<List<int>> GetTrialSubscriberIdsForReportAsync(string domain);
     Task<List<SubscriberEntity>> GetAllSubscribersAsync();
     Task<SubscriberStats> GetSubscriberStatsAsync();
+    Task<bool> IsRegistrationPausedAsync();
+    Task ResumeRegistrationAsync();
 }

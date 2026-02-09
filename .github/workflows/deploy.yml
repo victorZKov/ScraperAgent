@@ -23,7 +23,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -34,6 +33,10 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        id: repo
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -46,7 +49,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.IMAGE_NAME }}
           tags: |
             type=sha,prefix=
             type=raw,value=latest
@@ -93,6 +96,12 @@ jobs:
 
             # Login to GHCR using workflow token
             echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Ensure lowercase repo name in .env
+            REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            grep -q "^GITHUB_REPOSITORY_LOWER=" .env 2>/dev/null && \
+              sed -i "s|^GITHUB_REPOSITORY_LOWER=.*|GITHUB_REPOSITORY_LOWER=$REPO_LOWER|" .env || \
+              echo "GITHUB_REPOSITORY_LOWER=$REPO_LOWER" >> .env
 
             # Pull latest image
             docker compose -f docker-compose.prod.yml pull api

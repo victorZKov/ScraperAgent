@@ -84,6 +84,51 @@ public class ReportEmailService : IReportEmailService
         }
     }
 
+    public async Task<bool> SendNotificationEmailAsync(string to, string subject, string htmlBody)
+    {
+        if (string.IsNullOrEmpty(_emailOptions.Smtp.Host))
+        {
+            _logger.LogWarning("SMTP host not configured - notification email will not be sent");
+            return false;
+        }
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_emailOptions.FromName, _emailOptions.FromEmail));
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = subject;
+
+        var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+        message.Body = bodyBuilder.ToMessageBody();
+
+        try
+        {
+            using var client = new SmtpClient();
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+            var secureSocketOptions = _emailOptions.Smtp.EnableSsl
+                ? SecureSocketOptions.StartTls
+                : SecureSocketOptions.None;
+
+            await client.ConnectAsync(_emailOptions.Smtp.Host, _emailOptions.Smtp.Port, secureSocketOptions);
+
+            if (!string.IsNullOrEmpty(_emailOptions.Smtp.Username))
+            {
+                await client.AuthenticateAsync(_emailOptions.Smtp.Username, _emailOptions.Smtp.Password);
+            }
+
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            _logger.LogInformation("Notification email sent to {To}: {Subject}", to, subject);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending notification email to {To}", to);
+            return false;
+        }
+    }
+
     public string BuildHtmlReport(MarketReport report)
     {
         var data = report.Analysis;
