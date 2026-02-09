@@ -4,7 +4,7 @@ public class AIModelEntity
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;       // Display name, e.g. "GPT-4o"
-    public string Provider { get; set; } = "azure-openai";  // "azure-openai" or "azure-foundry"
+    public string Provider { get; set; } = "azure-openai";  // "azure-openai", "azure-foundry", "scaleway", or "openai-compatible"
     public string Endpoint { get; set; } = string.Empty;    // Full endpoint URL
     public string ApiKey { get; set; } = string.Empty;      // API key
     public string DeploymentName { get; set; } = string.Empty; // Model deployment name

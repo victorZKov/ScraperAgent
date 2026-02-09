@@ -1,12 +1,14 @@
+using System.ClientModel;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Azure;
 using Azure.AI.OpenAI;
+using OpenAI;
+using OpenAI.Chat;
 using ScraperAgent.Data.Entities;
 using ScraperAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OpenAI.Chat;
 
 namespace ScraperAgent.Services;
 
@@ -15,7 +17,7 @@ public class MarketAIService : IMarketAIService
     private readonly IConfigurationDataService _configService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<MarketAIService> _logger;
-    private static readonly ConcurrentDictionary<string, AzureOpenAIClient> _clientCache = new();
+    private static readonly ConcurrentDictionary<string, OpenAIClient> _clientCache = new();
 
     /// <summary>
     /// JSON Schema for OpenAI structured outputs (strict mode).
@@ -123,17 +125,17 @@ public class MarketAIService : IMarketAIService
         _configService = configService;
     }
 
-    private (AzureOpenAIClient client, string deployment) GetAIClient(AIModelEntity? model)
+    private (OpenAIClient client, string deployment) GetAIClient(AIModelEntity? model)
     {
         if (model != null && !string.IsNullOrEmpty(model.Endpoint) && !string.IsNullOrEmpty(model.ApiKey))
         {
-            var cacheKey = $"{model.Endpoint}:{model.ApiKey.GetHashCode()}";
-            var client = _clientCache.GetOrAdd(cacheKey, _ =>
-                new AzureOpenAIClient(new Uri(model.Endpoint), new AzureKeyCredential(model.ApiKey)));
+            var provider = model.Provider?.ToLowerInvariant() ?? "azure-openai";
+            var cacheKey = $"{provider}:{model.Endpoint}:{model.ApiKey.GetHashCode()}";
+            var client = _clientCache.GetOrAdd(cacheKey, _ => CreateClient(provider, model.Endpoint, model.ApiKey));
             return (client, model.DeploymentName);
         }
 
-        // Fallback to config
+        // Fallback to appsettings config (always Azure)
         var endpoint = _configuration["AzureOpenAI:Endpoint"]
                        ?? Environment.GetEnvironmentVariable("AzureOpenAI__Endpoint");
         var apiKey = _configuration["AzureOpenAI:ApiKey"]
@@ -145,10 +147,27 @@ public class MarketAIService : IMarketAIService
         if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(apiKey))
             return (null!, deployment);
 
-        var fallbackKey = $"{endpoint}:{apiKey.GetHashCode()}";
+        var fallbackKey = $"azure-openai:{endpoint}:{apiKey.GetHashCode()}";
         var fallbackClient = _clientCache.GetOrAdd(fallbackKey, _ =>
             new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey)));
         return (fallbackClient, deployment);
+    }
+
+    private static OpenAIClient CreateClient(string provider, string endpoint, string apiKey)
+    {
+        return provider switch
+        {
+            "scaleway" or "openai-compatible" =>
+                new OpenAIClient(new ApiKeyCredential(apiKey), new OpenAIClientOptions { Endpoint = new Uri(endpoint) }),
+            _ => // "azure-openai", "azure-foundry", etc.
+                new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey))
+        };
+    }
+
+    private static bool IsAzureProvider(string? provider)
+    {
+        var p = provider?.ToLowerInvariant() ?? "azure-openai";
+        return p.StartsWith("azure");
     }
 
     public Task<MarketAnalysisResult> AnalyzeTweetsAsync(TweetCollection tweets)
@@ -165,10 +184,10 @@ public class MarketAIService : IMarketAIService
         var (client, deploymentName) = GetAIClient(model);
 
         if (model != null)
-            _logger.LogInformation("Using configured AI model: {Name} (deployment: {Deployment}, domain: {Domain})",
-                model.Name, model.DeploymentName, model.Domain);
+            _logger.LogInformation("Using configured AI model: {Name} (provider: {Provider}, deployment: {Deployment}, domain: {Domain})",
+                model.Name, model.Provider, model.DeploymentName, model.Domain);
         else
-            _logger.LogInformation("No configured AI model found for domain '{Domain}', falling back to appsettings (deployment: {Deployment})",
+            _logger.LogInformation("No configured AI model found for domain '{Domain}', falling back to appsettings/Azure (deployment: {Deployment})",
                 domainStr, deploymentName);
 
         if (client == null)
@@ -194,20 +213,30 @@ public class MarketAIService : IMarketAIService
             if (isReasoningModel)
                 _logger.LogInformation("Detected reasoning model — skipping Temperature parameter");
 
+            var useAzure = IsAzureProvider(model?.Provider);
+
+            // For non-Azure providers (no strict schema enforcement), append JSON structure guide to the prompt
+            if (!useAzure)
+                prompt += GetJsonSchemaGuide();
+
             var messages = new List<ChatMessage>
             {
                 new SystemChatMessage(systemPrompt),
                 new UserChatMessage(prompt)
             };
-
             var options = new ChatCompletionOptions
             {
                 MaxOutputTokenCount = 12000,
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                    "market_analysis",
-                    BinaryData.FromBytes(AnalysisJsonSchema),
-                    jsonSchemaIsStrict: true)
+                ResponseFormat = useAzure
+                    ? ChatResponseFormat.CreateJsonSchemaFormat(
+                        "market_analysis",
+                        BinaryData.FromBytes(AnalysisJsonSchema),
+                        jsonSchemaIsStrict: true)
+                    : ChatResponseFormat.CreateJsonObjectFormat()
             };
+
+            if (!useAzure)
+                _logger.LogInformation("Non-Azure provider ({Provider}) — using JSON object mode instead of strict schema", model?.Provider);
 
             if (!isReasoningModel)
                 options.Temperature = 0.4f;
@@ -373,6 +402,25 @@ Please provide your complete analysis as a JSON object matching the schema. Focu
 IMPORTANT: You MUST provide EXACTLY 10 trading_signals and EXACTLY 10 recommendations. If you cannot find 10 high-conviction signals, include lower-confidence ones. Cover different tickers, sectors, and timeframes. Every expert should be analyzed in expert_sentiments.";
 
         return prompt;
+    }
+
+    private static string GetJsonSchemaGuide()
+    {
+        return @"
+
+RESPONSE FORMAT: You MUST respond with a valid JSON object with exactly these fields:
+{
+  ""executive_summary"": ""string (4-6 sentences)"",
+  ""overall_sentiment"": ""VERY_BEARISH|BEARISH|NEUTRAL|BULLISH|VERY_BULLISH"",
+  ""sentiment_score"": number (-1.0 to 1.0),
+  ""key_themes"": [""string"", ...],
+  ""trading_signals"": [{ ""ticker"": ""string"", ""direction"": ""STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL"", ""confidence"": ""HIGH|MEDIUM|LOW"", ""timeframe"": ""string"", ""rationale"": ""string"", ""source_experts"": [""string""], ""source_tweet_urls"": [""string""] }],
+  ""sector_breakdown"": [{ ""sector"": ""string"", ""sentiment"": ""VERY_BEARISH|...|VERY_BULLISH"", ""key_tickers"": [""string""], ""summary"": ""string"" }],
+  ""expert_sentiments"": [{ ""expert_handle"": ""string"", ""sentiment"": ""VERY_BEARISH|...|VERY_BULLISH"", ""key_takeaway"": ""string"", ""detailed_analysis"": ""string"", ""notable_calls"": [""string""] }],
+  ""risk_factors"": [""string"", ...],
+  ""recommendations"": [{ ""priority"": integer, ""action"": ""string"", ""risk_level"": ""LOW|MEDIUM|HIGH"", ""timeframe"": ""string"", ""reasoning"": ""string"" }]
+}
+Output ONLY the JSON object, no other text.";
     }
 
     private static bool IsReasoningModel(string deploymentName, string? modelName = null)
