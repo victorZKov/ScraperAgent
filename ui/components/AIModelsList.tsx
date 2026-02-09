@@ -13,6 +13,8 @@ import {
 const PROVIDER_OPTIONS = [
   { value: 'azure-openai', label: 'Azure OpenAI' },
   { value: 'azure-foundry', label: 'Azure Foundry' },
+  { value: 'scaleway', label: 'Scaleway' },
+  { value: 'openai-compatible', label: 'OpenAI Compatible' },
 ];
 
 const DOMAIN_OPTIONS = [
@@ -27,6 +29,10 @@ function providerBadgeClass(provider: string): string {
       return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
     case 'azure-foundry':
       return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+    case 'scaleway':
+      return 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
+    case 'openai-compatible':
+      return 'bg-green-500/20 text-green-400 border border-green-500/30';
     default:
       return 'bg-gray-500/20 text-text-muted border border-gray-500/30';
   }
@@ -543,29 +549,35 @@ export default function AIModelsList() {
                         </span>
                       </td>
                       <td className="py-3 text-center">
-                        {model.IsDefault ? (
-                          <svg
-                            className="w-5 h-5 text-amber-400 mx-auto"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5 text-text-faint mx-auto"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                            />
-                          </svg>
-                        )}
+                        <button
+                          onClick={() => handleSetDefault(model.Id)}
+                          className="transition-colors"
+                          title={model.IsDefault ? 'Default model' : 'Set as default'}
+                        >
+                          {model.IsDefault ? (
+                            <svg
+                              className="w-5 h-5 text-amber-400 mx-auto"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-5 h-5 text-text-faint hover:text-amber-400 mx-auto"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                              />
+                            </svg>
+                          )}
+                        </button>
                       </td>
                       <td className="py-3 pr-3 text-right">
                         {deleteConfirmId === model.Id ? (
@@ -594,27 +606,6 @@ export default function AIModelsList() {
                             >
                               Edit
                             </button>
-                            {!model.IsDefault && (
-                              <button
-                                onClick={() => handleSetDefault(model.Id)}
-                                className="text-amber-500 hover:text-amber-400 text-sm transition-colors"
-                                title="Set as default"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1.5}
-                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                                  />
-                                </svg>
-                              </button>
-                            )}
                             <button
                               onClick={() => setDeleteConfirmId(model.Id)}
                               className="text-red-400 hover:text-red-300 text-sm transition-colors"
