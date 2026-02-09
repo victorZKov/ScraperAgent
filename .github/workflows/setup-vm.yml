@@ -8,6 +8,9 @@ jobs:
     name: Initial VM Setup
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
 
@@ -22,15 +25,18 @@ jobs:
 
       - name: Create .env and start services
         uses: appleboy/ssh-action@v1
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GHCR_TOKEN
           script: |
             cd /opt/scraperagent
 
             # Create production .env
-            cat > .env << 'ENVEOF'
+            cat > .env <<EOF
             POSTGRES_USER=scraperagent
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             POSTGRES_DB=scraperagent
@@ -50,7 +56,7 @@ jobs:
             ASPNETCORE_ENVIRONMENT=Production
             GITHUB_REPOSITORY=${{ github.repository }}
             IMAGE_TAG=latest
-            ENVEOF
+            EOF
             chmod 600 .env
 
             # Generate random SearXNG secret key
@@ -60,7 +66,7 @@ jobs:
             fi
 
             # Login to GHCR and start services
-            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
 
