@@ -106,8 +106,8 @@ jobs:
             # Pull latest image
             docker compose -f docker-compose.prod.yml pull api
 
-            # Restart (recreate only changed services)
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            # Restart (force-recreate to pick up config file changes)
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
             # Prune old images
             docker image prune -f
