@@ -17,6 +17,15 @@ publish/
 .env.local
 .env.production
 local.settings.json
+backup-scripts/.env.backup
+backup-scripts/backup-log.txt
+backup-scripts/rclone.conf
+
+# Backups
+backup-scripts/backups/
+backups/
+*.sql
+*.sql.gz
 
 # OS
 .DS_Store
