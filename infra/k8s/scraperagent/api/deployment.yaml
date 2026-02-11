@@ -15,6 +15,8 @@ spec:
       labels:
         app: scraperagent-api
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: api
           image: ghcr.io/victorzkov/scraperagent-api:latest
