@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraperagent-ui
+  namespace: scraperagent
+  labels:
+    app: scraperagent-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scraperagent-ui
+  template:
+    metadata:
+      labels:
+        app: scraperagent-ui
+    spec:
+      containers:
+        - name: ui
+          image: ghcr.io/victorzkov/scraperagent-ui:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: scraperagent-ui-secrets
+                  key: ADMIN_PASSWORD
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30

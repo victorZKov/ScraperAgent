@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scraperagent-api
+  namespace: scraperagent
+spec:
+  selector:
+    app: scraperagent-api
+  ports:
+    - port: 5100
+      targetPort: 5100
+  type: ClusterIP

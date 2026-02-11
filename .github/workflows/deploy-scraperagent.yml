@@ -1,0 +1,156 @@
+name: Deploy ScraperAgent
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "**.cs"
+      - "**.csproj"
+      - "Dockerfile"
+      - "appsettings.json"
+      - "Configuration/**"
+      - "Data/**"
+      - "Endpoints/**"
+      - "Models/**"
+      - "Services/**"
+      - "Workers/**"
+      - "ScraperAgent.ServiceDefaults/**"
+      - "ui/**"
+      - "infra/k8s/**"
+      - ".github/workflows/deploy-scraperagent.yml"
+
+env:
+  REGISTRY: ghcr.io
+  API_IMAGE: ghcr.io/${{ github.repository_owner }}/scraperagent-api
+  UI_IMAGE: ghcr.io/${{ github.repository_owner }}/scraperagent-ui
+
+jobs:
+  build-api:
+    name: Build API Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        id: repo
+        run: echo "API_IMAGE_LC=${API_IMAGE,,}" >> "$GITHUB_OUTPUT"
+        env:
+          API_IMAGE: ${{ env.API_IMAGE }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.repo.outputs.API_IMAGE_LC }}:${{ github.sha }}
+            ${{ steps.repo.outputs.API_IMAGE_LC }}:latest
+
+  build-ui:
+    name: Build UI Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        id: repo
+        run: echo "UI_IMAGE_LC=${UI_IMAGE,,}" >> "$GITHUB_OUTPUT"
+        env:
+          UI_IMAGE: ${{ env.UI_IMAGE }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./ui
+          file: ./ui/Dockerfile
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.scraperagent.eu
+          tags: |
+            ${{ steps.repo.outputs.UI_IMAGE_LC }}:${{ github.sha }}
+            ${{ steps.repo.outputs.UI_IMAGE_LC }}:latest
+
+  deploy:
+    name: Deploy to Kapsule
+    needs: [build-api, build-ui]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+
+      - name: Lowercase image names
+        id: images
+        run: |
+          echo "API_IMAGE_LC=${API_IMAGE,,}" >> "$GITHUB_OUTPUT"
+          echo "UI_IMAGE_LC=${UI_IMAGE,,}" >> "$GITHUB_OUTPUT"
+        env:
+          API_IMAGE: ${{ env.API_IMAGE }}
+          UI_IMAGE: ${{ env.UI_IMAGE }}
+
+      # Apply non-secret manifests (namespaces, deployments, services, configmaps)
+      - name: Apply shared namespace
+        run: |
+          kubectl apply -f infra/k8s/shared/namespace.yaml
+          kubectl apply -f infra/k8s/shared/searxng/
+
+      - name: Apply scraperagent namespace
+        run: |
+          kubectl apply -f infra/k8s/scraperagent/namespace.yaml
+          kubectl apply -f infra/k8s/scraperagent/postgres/statefulset.yaml
+          kubectl apply -f infra/k8s/scraperagent/postgres/service.yaml
+          kubectl apply -f infra/k8s/scraperagent/api/configmap.yaml
+          kubectl apply -f infra/k8s/scraperagent/api/service.yaml
+          kubectl apply -f infra/k8s/scraperagent/ui/service.yaml
+
+      # Deploy with the newly built images
+      - name: Apply API deployment
+        run: |
+          sed -i "s|ghcr.io/victorzkov/scraperagent-api:latest|${{ steps.images.outputs.API_IMAGE_LC }}:${{ github.sha }}|" \
+            infra/k8s/scraperagent/api/deployment.yaml
+          kubectl apply -f infra/k8s/scraperagent/api/deployment.yaml
+          kubectl rollout status deployment/scraperagent-api \
+            -n scraperagent --timeout=300s
+
+      - name: Apply UI deployment
+        run: |
+          sed -i "s|ghcr.io/victorzkov/scraperagent-ui:latest|${{ steps.images.outputs.UI_IMAGE_LC }}:${{ github.sha }}|" \
+            infra/k8s/scraperagent/ui/deployment.yaml
+          kubectl apply -f infra/k8s/scraperagent/ui/deployment.yaml
+          kubectl rollout status deployment/scraperagent-ui \
+            -n scraperagent --timeout=120s
+
+      - name: Verify deployment
+        if: always()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n scraperagent
+          kubectl get pods -n shared
+          echo "=== Services ==="
+          kubectl get svc -n scraperagent
+          kubectl get svc -n shared

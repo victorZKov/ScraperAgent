@@ -1,0 +1,84 @@
+name: Infrastructure
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["infra/terraform/**"]
+
+env:
+  SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+  SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+  SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7"
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -var-file=production.tfvars -out=tfplan
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: infra/terraform/tfplan
+
+  apply:
+    name: Terraform Apply
+    needs: plan
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7"
+          terraform_wrapper: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: infra/terraform
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+      # Extract kubeconfig and store as GitHub Secret for deploy workflows
+      - name: Update KUBE_CONFIG secret
+        run: |
+          KUBECONFIG_B64=$(terraform output -raw kubeconfig | base64 -w 0)
+          gh secret set KUBE_CONFIG --body "$KUBECONFIG_B64" --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Verify cluster access
+        run: |
+          terraform output -raw kubeconfig > /tmp/kubeconfig
+          kubectl --kubeconfig /tmp/kubeconfig get nodes
+          rm /tmp/kubeconfig

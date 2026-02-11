@@ -39,6 +39,13 @@ ScraperAgent.AppHost/obj/
 *.tar
 pgdata/
 
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/*.tfplan
+infra/terraform/tfplan
+
 # Node
 node_modules/
 .next/

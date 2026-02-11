@@ -1,0 +1,6 @@
+zone        = "nl-ams-1"
+region      = "nl-ams"
+node_type   = "DEV1-M"
+k8s_version = "1.31"
+api_domain  = "api.scraperagent.eu"
+dns_zone    = "scraperagent.eu"

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scraperagent-api-config
+  namespace: scraperagent
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:5100"
+  TweetSource: "live"
+  ReportRecipients: "victorxata@icloud.com"
+  SearXNG__BaseUrl: "http://searxng.shared.svc.cluster.local:8080"
+  Email__FromEmail: "noreply@scraperagent.eu"
+  Email__FromName: "Market Intelligence Agent"
+  Email__Smtp__Host: "smtp.tem.scaleway.com"
+  Email__Smtp__Port: "587"
+  Email__Smtp__EnableSsl: "true"
+  Mollie__WebhookBaseUrl: "https://api.scraperagent.eu"
+  Mollie__RedirectBaseUrl: "https://scraperagent.eu"
+  Mollie__MonthlyPrice: "9.99"
+  Mollie__Currency: "EUR"
