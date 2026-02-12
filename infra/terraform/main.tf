@@ -46,3 +46,23 @@ resource "scaleway_k8s_pool" "default" {
 
   wait_for_pool_ready = true
 }
+
+# ─── DNS ──────────────────────────────────────────────────────────────────────
+
+# Root domain -> ingress-nginx LB IP (scraperagent.eu)
+resource "scaleway_domain_record" "root_a" {
+  dns_zone = var.dns_zone
+  name     = ""
+  type     = "A"
+  data     = var.ingress_lb_ip
+  ttl      = 300
+}
+
+# API subdomain -> ingress-nginx LB IP (api.scraperagent.eu)
+resource "scaleway_domain_record" "api_a" {
+  dns_zone = var.dns_zone
+  name     = "api"
+  type     = "A"
+  data     = var.ingress_lb_ip
+  ttl      = 300
+}

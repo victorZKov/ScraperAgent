@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scraperagent-ingress
+  namespace: scraperagent
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - scraperagent.eu
+        - api.scraperagent.eu
+      secretName: scraperagent-tls
+  rules:
+    - host: scraperagent.eu
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: scraperagent-ui
+                port:
+                  number: 3000
+    - host: api.scraperagent.eu
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: scraperagent-api
+                port:
+                  number: 5100

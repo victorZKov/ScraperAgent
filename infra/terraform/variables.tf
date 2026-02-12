@@ -33,3 +33,8 @@ variable "dns_zone" {
   type        = string
   default     = "scraperagent.eu"
 }
+
+variable "ingress_lb_ip" {
+  description = "External IP of the ingress-nginx LoadBalancer"
+  type        = string
+}
