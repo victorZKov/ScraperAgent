@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchSubscribers, fetchSubscriberStats } from '@/lib/api';
+import { fetchSubscribers, fetchSubscriberStats, adminUpdateSubscriber } from '@/lib/api';
 import type { Subscriber, SubscriberStats } from '@/lib/types';
 
 const statusConfig: Record<string, { label: string; color: string }> = {
@@ -24,6 +24,19 @@ export default function SubscribersList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'trial' | 'active' | 'cancelled' | 'expired'>('all');
+  const [updating, setUpdating] = useState<number | null>(null);
+
+  const updateStatus = async (id: number, status: string) => {
+    setUpdating(id);
+    try {
+      await adminUpdateSubscriber(id, { status });
+      await loadData();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setUpdating(null);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -142,6 +155,9 @@ export default function SubscribersList() {
                 <th className="text-right px-4 py-3 text-xs font-medium text-text-faint uppercase tracking-wider">
                   Signed Up
                 </th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-text-faint uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle">
@@ -177,6 +193,28 @@ export default function SubscribersList() {
                     </td>
                     <td className="px-4 py-3 text-right text-text-muted text-xs">
                       {new Date(sub.CreatedAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {sub.Status !== 'cancelled' && (
+                          <button
+                            onClick={() => updateStatus(sub.Id, 'cancelled')}
+                            disabled={updating === sub.Id}
+                            className="px-2 py-1 rounded text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
+                          >
+                            {updating === sub.Id ? '...' : 'Cancel'}
+                          </button>
+                        )}
+                        {sub.Status === 'cancelled' && (
+                          <button
+                            onClick={() => updateStatus(sub.Id, 'trial')}
+                            disabled={updating === sub.Id}
+                            className="px-2 py-1 rounded text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 disabled:opacity-50 transition-colors"
+                          >
+                            {updating === sub.Id ? '...' : 'Reactivate'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

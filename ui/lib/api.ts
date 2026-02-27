@@ -367,3 +367,13 @@ export async function fetchSubscriberStats(): Promise<{ stats: SubscriberStats }
     `${API_BASE}/api/config/subscribers/stats`
   );
 }
+
+export async function adminUpdateSubscriber(
+  id: number,
+  update: { status?: string; domainPreference?: string }
+): Promise<{ success: boolean; subscriber: Subscriber }> {
+  return fetchJSON<{ success: boolean; subscriber: Subscriber }>(
+    `${API_BASE}/api/admin/subscribers/${id}`,
+    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(update) }
+  );
+}
