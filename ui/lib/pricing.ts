@@ -1,8 +1,8 @@
 export const PRICING = {
   monthlyPrice: 9.99,
   currency: 'EUR',
-  trialReports: 10,
-  trialDays: 14,
+  trialReports: 5,
+  trialDays: 7,
   features: [
     'Daily AI-powered market intelligence reports',
     'Analysis from 40+ expert sources',

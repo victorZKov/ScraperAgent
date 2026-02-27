@@ -32,8 +32,8 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-text-primary mb-2">Free Trial</h2>
           <p>
-            New subscribers receive 10 free reports within a 14-day trial period. After the trial
-            ends (either all 10 reports are delivered or 14 days elapse), report delivery pauses
+            New subscribers receive 5 free reports within a 7-day trial period. After the trial
+            ends (either all 5 reports are delivered or 7 days elapse), report delivery pauses
             until you subscribe to a paid plan. There are no automatic charges — you must explicitly
             choose to upgrade.
           </p>

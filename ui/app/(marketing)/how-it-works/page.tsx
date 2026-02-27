@@ -171,7 +171,7 @@ export default function HowItWorksPage() {
       <SectionWrapper>
         <CTABanner
           heading="Ready to Try It?"
-          subtext="Start your free trial today. 10 free reports, no credit card required."
+          subtext="Start your free trial today. 5 free reports, no credit card required."
           primaryHref="/subscribe"
           primaryLabel="Start Free Trial"
           secondaryHref="/pricing"
