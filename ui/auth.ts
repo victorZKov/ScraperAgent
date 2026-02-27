@@ -12,6 +12,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   ],
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isAdminPath = ["/dashboard", "/settings", "/reports"].some(
+        (p) => nextUrl.pathname.startsWith(p)
+      );
+      if (isAdminPath) return isLoggedIn;
+      return true;
+    },
     jwt({ token, account }) {
       if (account) {
         token.access_token = account.access_token;
