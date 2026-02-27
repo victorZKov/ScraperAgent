@@ -59,6 +59,7 @@ export default async function AdminLayout({
                 name={user?.name}
                 email={user?.email}
                 isAdmin={isAdmin}
+                version={(process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev').slice(0, 7)}
               />
             </div>
           </div>
@@ -80,9 +81,14 @@ export default async function AdminLayout({
                 Kovimatic
               </a>
             </span>
-            <a href="mailto:it@kovimatic.ie" className="hover:text-text-secondary transition-colors">
-              it@kovimatic.ie
-            </a>
+            <div className="flex items-center gap-3">
+              <span className="font-mono">
+                v{(process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev').slice(0, 7)}
+              </span>
+              <a href="mailto:it@kovimatic.ie" className="hover:text-text-secondary transition-colors">
+                it@kovimatic.ie
+              </a>
+            </div>
           </div>
         </div>
       </footer>

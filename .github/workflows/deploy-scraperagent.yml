@@ -84,6 +84,7 @@ jobs:
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=https://api.scraperagent.eu
+            NEXT_PUBLIC_COMMIT_SHA=${{ github.sha }}
           tags: |
             ${{ steps.repo.outputs.UI_IMAGE_LC }}:${{ github.sha }}
             ${{ steps.repo.outputs.UI_IMAGE_LC }}:latest
@@ -144,7 +145,7 @@ jobs:
             infra/k8s/scraperagent/ui/deployment.yaml
           kubectl apply -f infra/k8s/scraperagent/ui/deployment.yaml
           kubectl rollout status deployment/scraperagent-ui \
-            -n scraperagent --timeout=180s
+            -n scraperagent --timeout=300s
 
       # Apply Ingress
       - name: Apply Ingress

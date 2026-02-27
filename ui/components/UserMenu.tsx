@@ -9,9 +9,10 @@ interface UserMenuProps {
   name: string | null | undefined;
   email: string | null | undefined;
   isAdmin: boolean;
+  version?: string;
 }
 
-export function UserMenu({ name, email, isAdmin }: UserMenuProps) {
+export function UserMenu({ name, email, isAdmin, version }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -149,6 +150,13 @@ export function UserMenu({ name, email, isAdmin }: UserMenuProps) {
               Sign out
             </button>
           </div>
+
+          {/* Version */}
+          {version && (
+            <div className="px-3 py-2 border-t border-border-subtle/60">
+              <p className="text-xs font-mono text-text-faint">v{version}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
