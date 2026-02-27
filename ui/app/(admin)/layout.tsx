@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { ThemeToggle } from '../../components/ThemeToggle';
-import { auth, signOut } from '@/auth';
+import { auth } from '@/auth';
+import { UserMenu } from '../../components/UserMenu';
 
 export default async function AdminLayout({
   children,
@@ -9,6 +9,12 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
   const user = session?.user;
+
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isAdmin = adminEmails.includes((user?.email ?? '').toLowerCase());
 
   return (
     <>
@@ -38,35 +44,21 @@ export default async function AdminLayout({
               </span>
             </Link>
 
-            {/* Navigation Links */}
-            <nav className="flex items-center gap-1">
+            {/* Right side: nav + user menu */}
+            <div className="flex items-center gap-1">
               <Link
                 href="/dashboard"
                 className="px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-text-primary hover:bg-surface-elevated/60 transition-all"
               >
                 Dashboard
               </Link>
-              <Link
-                href="/settings"
-                className="px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-text-primary hover:bg-surface-elevated/60 transition-all"
-              >
-                Settings
-              </Link>
               <div className="w-px h-5 bg-border-subtle mx-1" />
-              <ThemeToggle />
-              <div className="w-px h-5 bg-border-subtle mx-1" />
-              {user && (
-                <div className="flex items-center gap-2 text-xs text-text-faint pl-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  <span>{user.name ?? user.email}</span>
-                  <form action={async () => { 'use server'; await signOut({ redirectTo: '/api/auth/signin' }); }}>
-                    <button type="submit" className="ml-1 hover:text-text-secondary transition-colors">
-                      Sign out
-                    </button>
-                  </form>
-                </div>
-              )}
-            </nav>
+              <UserMenu
+                name={user?.name}
+                email={user?.email}
+                isAdmin={isAdmin}
+              />
+            </div>
           </div>
         </div>
       </header>

@@ -20,14 +20,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (isAdminPath) return isLoggedIn;
       return true;
     },
-    jwt({ token, account }) {
+    jwt({ token, account, profile }) {
       if (account) {
         token.access_token = account.access_token;
+        token.role = (profile as any)?.role ?? null;
       }
       return token;
     },
     session({ session, token }) {
       (session as any).access_token = token.access_token;
+      (session as any).user.role = token.role ?? null;
       return session;
     },
   },
