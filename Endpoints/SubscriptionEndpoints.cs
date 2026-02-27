@@ -23,7 +23,7 @@ public static class SubscriptionEndpoints
         sub.MapPost("/webhooks/mollie", HandleMollieWebhook);
 
         // Admin endpoints
-        var admin = app.MapGroup("/api/config");
+        var admin = app.MapGroup("/api/config").RequireAuthorization();
         admin.MapGet("/subscribers", ListSubscribers);
         admin.MapPut("/subscribers/{id:int}", AdminUpdateSubscriber);
         admin.MapGet("/subscribers/stats", GetSubscriberStats);

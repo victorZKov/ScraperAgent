@@ -15,6 +15,11 @@ spec:
       labels:
         app: scraperagent-ui
     spec:
+      tolerations:
+        - key: k8s.scaleway.com/env
+          operator: Equal
+          value: prod
+          effect: NoSchedule
       imagePullSecrets:
         - name: ghcr-secret
       containers:
@@ -22,12 +27,9 @@ spec:
           image: ghcr.io/victorzkov/scraperagent-ui:latest
           ports:
             - containerPort: 3000
-          env:
-            - name: ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: scraperagent-ui-secrets
-                  key: ADMIN_PASSWORD
+          envFrom:
+            - secretRef:
+                name: scraperagent-ui-secrets
           resources:
             requests:
               cpu: 25m

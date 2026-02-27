@@ -15,6 +15,11 @@ spec:
       labels:
         app: scraperagent-api
     spec:
+      tolerations:
+        - key: k8s.scaleway.com/env
+          operator: Equal
+          value: prod
+          effect: NoSchedule
       imagePullSecrets:
         - name: ghcr-secret
       containers:

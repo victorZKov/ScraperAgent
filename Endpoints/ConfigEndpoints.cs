@@ -10,7 +10,7 @@ public static class ConfigEndpoints
 
     public static WebApplication MapConfigEndpoints(this WebApplication app)
     {
-        var config = app.MapGroup("/api/config");
+        var config = app.MapGroup("/api/config").RequireAuthorization();
 
         // Experts
         config.MapGet("/experts", ListExperts);

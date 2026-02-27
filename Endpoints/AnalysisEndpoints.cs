@@ -9,12 +9,12 @@ public static class AnalysisEndpoints
     public static WebApplication MapAnalysisEndpoints(this WebApplication app)
     {
         // Analysis trigger + job status (domain-parameterized)
-        app.MapPost("/api/{domain}/analyze", TriggerAnalysis);
-        app.MapGet("/api/{domain}/jobs/{jobId}", GetJobStatus);
-        app.MapGet("/api/{domain}/reports/{reportId}", GetReport);
-        app.MapGet("/api/{domain}/reports", ListReports);
-        app.MapGet("/api/reports", ListAllReports);
-        app.MapPost("/api/{domain}/reports/{reportId}/resend-email", ResendEmail);
+        app.MapPost("/api/{domain}/analyze", TriggerAnalysis).RequireAuthorization();
+        app.MapGet("/api/{domain}/jobs/{jobId}", GetJobStatus).RequireAuthorization();
+        app.MapGet("/api/{domain}/reports/{reportId}", GetReport).RequireAuthorization();
+        app.MapGet("/api/{domain}/reports", ListReports).RequireAuthorization();
+        app.MapGet("/api/reports", ListAllReports).RequireAuthorization();
+        app.MapPost("/api/{domain}/reports/{reportId}/resend-email", ResendEmail).RequireAuthorization();
 
         return app;
     }

@@ -1,5 +1,7 @@
 using System.Threading.Channels;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ScraperAgent.Configuration;
 using ScraperAgent.Data;
 using ScraperAgent.Endpoints;
@@ -105,6 +107,19 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["QuantumID:Authority"];
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = "name",
+            RoleClaimType = "role",
+            ValidateAudience = false
+        };
+    });
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Seed database on first run (non-fatal)
@@ -125,6 +140,8 @@ catch (Exception ex)
 }
 
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapDefaultEndpoints();
 
 // Map API endpoints

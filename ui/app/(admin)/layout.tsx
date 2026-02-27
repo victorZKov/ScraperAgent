@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import { ThemeToggle } from '../../components/ThemeToggle';
+import { auth, signOut } from '@/auth';
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  const user = session?.user;
+
   return (
     <>
       {/* Navigation */}
@@ -51,10 +55,17 @@ export default function AdminLayout({
               <div className="w-px h-5 bg-border-subtle mx-1" />
               <ThemeToggle />
               <div className="w-px h-5 bg-border-subtle mx-1" />
-              <div className="flex items-center gap-2 text-xs text-text-faint pl-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span>API Connected</span>
-              </div>
+              {user && (
+                <div className="flex items-center gap-2 text-xs text-text-faint pl-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <span>{user.name ?? user.email}</span>
+                  <form action={async () => { 'use server'; await signOut({ redirectTo: '/api/auth/signin' }); }}>
+                    <button type="submit" className="ml-1 hover:text-text-secondary transition-colors">
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              )}
             </nav>
           </div>
         </div>

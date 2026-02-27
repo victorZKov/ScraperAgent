@@ -1,3 +1,4 @@
+import { getSession } from 'next-auth/react';
 import {
   ReportsListResponse,
   FullReport,
@@ -19,10 +20,14 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071';
 
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
+  const session = await getSession();
+  const accessToken = (session as any)?.access_token as string | undefined;
+
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...options?.headers,
     },
   });

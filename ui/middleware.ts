@@ -1,21 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-const ADMIN_PATHS = ['/dashboard', '/settings', '/reports'];
+const ADMIN_PATHS = ["/dashboard", "/settings", "/reports"];
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
   const isAdminPath = ADMIN_PATHS.some((p) => pathname.startsWith(p));
 
   if (!isAdminPath) return NextResponse.next();
+  if (req.auth) return NextResponse.next();
 
-  const token = request.cookies.get('admin-token');
-  if (token?.value === 'authenticated') return NextResponse.next();
-
-  const loginUrl = new URL('/admin-login', request.url);
-  loginUrl.searchParams.set('from', pathname);
-  return NextResponse.redirect(loginUrl);
-}
+  const signInUrl = new URL("/api/auth/signin", req.url);
+  signInUrl.searchParams.set("callbackUrl", req.url);
+  return NextResponse.redirect(signInUrl);
+});
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/settings/:path*', '/reports/:path*'],
+  matcher: ["/dashboard/:path*", "/settings/:path*", "/reports/:path*"],
 };
