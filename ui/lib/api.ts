@@ -379,7 +379,7 @@ export async function adminUpdateSubscriber(
   update: { status?: string; domainPreference?: string }
 ): Promise<{ success: boolean; subscriber: Subscriber }> {
   return fetchJSON<{ success: boolean; subscriber: Subscriber }>(
-    `${API_BASE}/api/admin/subscribers/${id}`,
+    `${API_BASE}/api/config/subscribers/${id}`,
     { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(update) }
   );
 }
