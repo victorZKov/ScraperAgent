@@ -12,6 +12,7 @@ public static class SubscriptionEndpoints
         // Public subscriber endpoints
         var sub = app.MapGroup("/api/subscribe");
         sub.MapPost("/", CreateTrialSubscriber);
+        sub.MapGet("/verify", VerifyEmail);
         sub.MapGet("/manage/{token}", GetSubscriber);
         sub.MapPut("/manage/{token}", UpdateSubscriber);
         sub.MapPost("/manage/{token}/upgrade", UpgradeSubscriber);
@@ -68,6 +69,28 @@ public static class SubscriptionEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating trial subscriber");
+            return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+        }
+    }
+
+    private static async Task<IResult> VerifyEmail(
+        string token,
+        ISubscriberService subscriberService,
+        ILoggerFactory loggerFactory)
+    {
+        var logger = Log(loggerFactory);
+        try
+        {
+            var subscriber = await subscriberService.VerifyEmailAsync(token);
+            if (subscriber == null)
+                return Results.BadRequest(new { success = false, error = "Invalid or expired verification link." });
+
+            logger.LogInformation("Email verified for {Email}", subscriber.Email);
+            return Results.Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error verifying email token");
             return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
         }
     }

@@ -150,6 +150,9 @@ export default function SubscribersList() {
                   Status
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-medium text-text-faint uppercase tracking-wider">
+                  Verified
+                </th>
+                <th className="text-center px-4 py-3 text-xs font-medium text-text-faint uppercase tracking-wider">
                   Trial Usage
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-text-faint uppercase tracking-wider">
@@ -181,6 +184,12 @@ export default function SubscribersList() {
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium border ${st.color}`}>
                         {st.label}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {sub.EmailVerified
+                        ? <span className="text-green-400 font-bold">✓</span>
+                        : <span className="text-text-faint">✗</span>
+                      }
                     </td>
                     <td className="px-4 py-3 text-center text-text-muted">
                       {sub.Status === 'trial' ? (

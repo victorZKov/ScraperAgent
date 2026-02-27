@@ -57,14 +57,16 @@ public class SubscriberService : ISubscriberService
                 existing.Name = name ?? existing.Name;
                 existing.DomainPreference = domainPreference;
                 existing.IsActive = true;
+                existing.EmailVerified = false;
+                existing.EmailVerificationToken = GenerateToken();
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.CancelledAt = null;
                 await _db.SaveChangesAsync();
-                // Fire-and-forget: don't block the HTTP response on email delivery
+                var reactivationVerifyUrl = $"{_mollieOptions.RedirectBaseUrl}/verify?token={existing.EmailVerificationToken}";
                 _ = Task.Run(async () =>
                 {
                     await SendRegistrationNotificationAsync(existing, isReactivation: true);
-                    await SendWelcomeWithLatestReportAsync(existing);
+                    await _emailService.SendEmailVerificationAsync(existing.Email, existing.Name ?? "", reactivationVerifyUrl);
                 });
                 return existing;
             }
@@ -80,6 +82,8 @@ public class SubscriberService : ISubscriberService
             TrialReportsUsed = 0,
             TrialExpiresAt = DateTime.UtcNow.Add(TrialDuration),
             ManagementToken = GenerateToken(),
+            EmailVerified = false,
+            EmailVerificationToken = GenerateToken(),
             ConsentGivenAt = DateTime.UtcNow,
             ConsentIpAddress = ipAddress,
             IsActive = true,
@@ -91,11 +95,12 @@ public class SubscriberService : ISubscriberService
         await _db.SaveChangesAsync();
         _logger.LogInformation("Created trial subscriber {Email} with token {Token}", email, subscriber.ManagementToken);
 
+        var verifyUrl = $"{_mollieOptions.RedirectBaseUrl}/verify?token={subscriber.EmailVerificationToken}";
         // Fire-and-forget: don't block the HTTP response on email delivery
         _ = Task.Run(async () =>
         {
             await SendRegistrationNotificationAsync(subscriber, isReactivation: false);
-            await SendWelcomeWithLatestReportAsync(subscriber);
+            await _emailService.SendEmailVerificationAsync(subscriber.Email, subscriber.Name ?? "", verifyUrl);
         });
 
         // Auto-pause registration at every milestone (100, 200, 300...)
@@ -112,6 +117,21 @@ public class SubscriberService : ISubscriberService
     public async Task<SubscriberEntity?> GetByManagementTokenAsync(string token)
     {
         return await _db.Subscribers.FirstOrDefaultAsync(s => s.ManagementToken == token && s.IsActive);
+    }
+
+    public async Task<SubscriberEntity?> VerifyEmailAsync(string verificationToken)
+    {
+        var subscriber = await _db.Subscribers.FirstOrDefaultAsync(s => s.EmailVerificationToken == verificationToken && s.IsActive);
+        if (subscriber == null) return null;
+
+        subscriber.EmailVerified = true;
+        subscriber.EmailVerificationToken = null;
+        subscriber.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        _logger.LogInformation("Email verified for subscriber {Email}", subscriber.Email);
+
+        _ = Task.Run(() => SendWelcomeWithLatestReportAsync(subscriber));
+        return subscriber;
     }
 
     public async Task<SubscriberEntity?> UpdatePreferencesAsync(string token, string? name, string? domainPreference)
@@ -161,6 +181,8 @@ public class SubscriberService : ISubscriberService
         subscriber.CancelledAt = DateTime.UtcNow;
         subscriber.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
+
+        _ = Task.Run(() => _emailService.SendCancellationConfirmationAsync(subscriber.Email, subscriber.Name ?? ""));
         return true;
     }
 
@@ -271,6 +293,7 @@ public class SubscriberService : ISubscriberService
         var now = DateTime.UtcNow;
         return await _db.Subscribers
             .Where(s => s.IsActive &&
+                s.EmailVerified &&
                 (s.DomainPreference == domain || s.DomainPreference == "both") &&
                 (s.Status == "active" ||
                  (s.Status == "trial" && s.TrialReportsUsed < TrialReportLimit && s.TrialExpiresAt > now)))
@@ -283,6 +306,7 @@ public class SubscriberService : ISubscriberService
         var now = DateTime.UtcNow;
         return await _db.Subscribers
             .Where(s => s.IsActive &&
+                s.EmailVerified &&
                 s.Status == "trial" &&
                 (s.DomainPreference == domain || s.DomainPreference == "both") &&
                 s.TrialReportsUsed < TrialReportLimit &&

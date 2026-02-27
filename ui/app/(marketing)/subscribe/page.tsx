@@ -42,28 +42,14 @@ export default function SubscribePage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-text-primary mb-3">You&apos;re Subscribed!</h1>
+        <h1 className="text-2xl font-bold text-text-primary mb-3">Check your email</h1>
         <p className="text-text-secondary mb-2">
-          Your free trial has started. You&apos;ll receive your first report at{' '}
+          We&apos;ve sent a confirmation link to{' '}
           <strong className="text-text-primary">{subscriber.Email}</strong>.
         </p>
         <p className="text-sm text-text-muted mb-8">
-          {PRICING.trialReports} free reports over {PRICING.trialDays} days — no credit card required.
+          Click the link to activate your {PRICING.trialReports}-report free trial — no credit card required.
         </p>
-        <div className="p-4 rounded-xl border border-border-subtle bg-surface/50 text-left mb-6">
-          <p className="text-xs text-text-faint mb-1">Your management link:</p>
-          <p className="text-sm text-text-secondary break-all">
-            <Link
-              href={`/manage/${subscriber.ManagementToken}`}
-              className="text-blue-400 hover:text-blue-300 underline"
-            >
-              Manage your subscription
-            </Link>
-          </p>
-          <p className="text-xs text-text-faint mt-2">
-            Save this link — it&apos;s also included in every report email.
-          </p>
-        </div>
         <Link
           href="/"
           className="text-sm text-text-muted hover:text-text-secondary transition-colors"

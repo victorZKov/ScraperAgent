@@ -368,6 +368,12 @@ export async function fetchSubscriberStats(): Promise<{ stats: SubscriberStats }
   );
 }
 
+export async function verifyEmail(token: string): Promise<{ success: boolean }> {
+  return fetchJSON<{ success: boolean }>(
+    `${API_BASE}/api/subscribe/verify?token=${encodeURIComponent(token)}`
+  );
+}
+
 export async function adminUpdateSubscriber(
   id: number,
   update: { status?: string; domainPreference?: string }

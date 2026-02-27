@@ -131,6 +131,43 @@ public class ReportEmailService : IReportEmailService
         }
     }
 
+    public Task<bool> SendEmailVerificationAsync(string toEmail, string toName, string verifyUrl)
+    {
+        var displayName = string.IsNullOrWhiteSpace(toName) ? "there" : toName;
+        var html = $"""
+            <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0f0f1a;color:#e0e0e0;border-radius:12px;overflow:hidden">
+              <div style="background:linear-gradient(135deg,#7228cc,#893ceb);padding:32px 24px;text-align:center">
+                <h1 style="margin:0;font-size:22px;color:#fff">Market Intelligence Agent</h1>
+              </div>
+              <div style="padding:32px 24px">
+                <h2 style="margin:0 0 12px;font-size:18px;color:#fff">Confirm your email address</h2>
+                <p style="margin:0 0 24px;color:#b0b0c0;line-height:1.6">Hi {HttpUtility.HtmlEncode(displayName)}, please click the button below to confirm your subscription and start receiving market intelligence reports.</p>
+                <a href="{HttpUtility.HtmlEncode(verifyUrl)}" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#7228cc,#893ceb);color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px">Confirm my subscription</a>
+                <p style="margin:24px 0 0;color:#666;font-size:12px">If you didn't request this, you can ignore this email. The link expires in 7 days.</p>
+              </div>
+            </div>
+            """;
+        return SendNotificationEmailAsync(toEmail, "Confirm your Market Intelligence Agent subscription", html);
+    }
+
+    public Task<bool> SendCancellationConfirmationAsync(string toEmail, string toName)
+    {
+        var displayName = string.IsNullOrWhiteSpace(toName) ? "there" : toName;
+        var html = $"""
+            <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0f0f1a;color:#e0e0e0;border-radius:12px;overflow:hidden">
+              <div style="background:linear-gradient(135deg,#7228cc,#893ceb);padding:32px 24px;text-align:center">
+                <h1 style="margin:0;font-size:22px;color:#fff">Market Intelligence Agent</h1>
+              </div>
+              <div style="padding:32px 24px">
+                <h2 style="margin:0 0 12px;font-size:18px;color:#fff">You've been unsubscribed</h2>
+                <p style="margin:0 0 16px;color:#b0b0c0;line-height:1.6">Hi {HttpUtility.HtmlEncode(displayName)}, your subscription to Market Intelligence Agent has been cancelled. You won't receive any more reports.</p>
+                <p style="margin:0;color:#b0b0c0;line-height:1.6">If you change your mind, you can re-subscribe at any time at <a href="https://scraperagent.eu/subscribe" style="color:#893ceb">scraperagent.eu</a>.</p>
+              </div>
+            </div>
+            """;
+        return SendNotificationEmailAsync(toEmail, "You've been unsubscribed from Market Intelligence Agent", html);
+    }
+
     public string BuildHtmlReport(MarketReport report)
     {
         var data = report.Analysis;
