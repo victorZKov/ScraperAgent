@@ -47,7 +47,14 @@ builder.Services.AddHttpClient("TwitterScraper", client =>
     var handler = new HttpClientHandler();
     if (!string.IsNullOrEmpty(twitterProxy))
     {
-        handler.Proxy = new System.Net.WebProxy(twitterProxy);
+        var proxyUri = new Uri(twitterProxy);
+        var webProxy = new System.Net.WebProxy(new Uri($"{proxyUri.Scheme}://{proxyUri.Host}:{proxyUri.Port}"));
+        if (!string.IsNullOrEmpty(proxyUri.UserInfo))
+        {
+            var parts = proxyUri.UserInfo.Split(':', 2);
+            webProxy.Credentials = new System.Net.NetworkCredential(parts[0], parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : "");
+        }
+        handler.Proxy = webProxy;
         handler.UseProxy = true;
     }
     return handler;
