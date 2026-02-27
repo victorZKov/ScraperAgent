@@ -45,7 +45,7 @@ export default function MobileNav() {
             <Link
               href="/subscribe"
               onClick={() => setOpen(false)}
-              className="mt-1 px-4 py-2.5 rounded-lg text-sm font-medium text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+              className="mt-1 px-4 py-2.5 rounded-lg text-sm font-medium text-center bg-gradient-to-r from-brand-500 to-brand-600 text-white"
             >
               Start Free Trial
             </Link>

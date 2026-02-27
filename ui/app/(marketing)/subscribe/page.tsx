@@ -176,7 +176,7 @@ export default function SubscribePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 rounded-xl text-base font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-6 py-3 rounded-xl text-base font-semibold bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Subscribing...' : 'Start Free Trial'}
         </button>

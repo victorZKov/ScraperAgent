@@ -2,6 +2,9 @@ import NextAuth from "next-auth";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  pages: {
+    signIn: "/signin",
+  },
   providers: [
     {
       id: "quantumid",
@@ -10,6 +13,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       issuer: process.env.NEXT_PUBLIC_OIDC_AUTHORITY,
       clientId: process.env.NEXT_PUBLIC_OIDC_CLIENT_ID,
       clientSecret: process.env.OIDC_CLIENT_SECRET,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          // QuantumID may use preferred_username instead of name
+          name: profile.name ?? profile.preferred_username ?? profile.username ?? null,
+          email: profile.email ?? null,
+          image: profile.picture ?? null,
+        };
+      },
     },
   ],
   callbacks: {
@@ -22,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     jwt({ token, account, profile }) {
-      if (account) {
+      if (account && profile) {
         token.access_token = account.access_token;
         token.role = (profile as any)?.role ?? null;
       }

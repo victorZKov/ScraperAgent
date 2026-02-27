@@ -14,7 +14,9 @@ export default async function AdminLayout({
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
-  const isAdmin = adminEmails.includes((user?.email ?? '').toLowerCase());
+  const isAdmin =
+    (user as any)?.role === 'admin' ||
+    adminEmails.includes((user?.email ?? '').toLowerCase());
 
   return (
     <>
@@ -24,7 +26,7 @@ export default async function AdminLayout({
           <div className="flex items-center justify-between h-16">
             {/* Logo / Brand */}
             <Link href="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 transition-shadow">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:shadow-brand-500/30 transition-shadow">
                 <svg
                   className="w-4.5 h-4.5 text-white"
                   fill="none"

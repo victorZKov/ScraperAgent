@@ -13,7 +13,7 @@ export default function ExpertCard({ expert }: ExpertCardProps) {
       {/* Header */}
       <div className="px-5 py-4 border-b border-border-subtle/60 flex items-center justify-between bg-surface/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold text-sm">
             {expert.ExpertHandle.charAt(0).toUpperCase()}
           </div>
           <div>

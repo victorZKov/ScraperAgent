@@ -21,6 +21,18 @@ const config: Config = {
         'text-faint': 'rgb(var(--text-faint) / <alpha-value>)',
         'input-bg': 'rgb(var(--input-bg) / <alpha-value>)',
         'input-border': 'rgb(var(--input-border) / <alpha-value>)',
+        brand: {
+          50: '#f5edff',
+          100: '#e8d5ff',
+          200: '#d3b0ff',
+          300: '#b87dfc',
+          400: '#a052f4',
+          500: '#893ceb',
+          600: '#7228cc',
+          700: '#5c1fa8',
+          800: '#481787',
+          900: '#360f66',
+        },
         market: {
           50: '#eff6ff',
           100: '#dbeafe',

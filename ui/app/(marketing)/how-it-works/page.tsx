@@ -43,7 +43,7 @@ export default function HowItWorksPage() {
         <div className="max-w-3xl mx-auto">
           <div className="rounded-xl border border-border-subtle bg-surface/50 p-6 sm:p-8">
             <div className="flex items-center gap-4 mb-4">
-              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold flex items-center justify-center">1</span>
+              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-lg font-bold flex items-center justify-center">1</span>
               <h3 className="text-xl font-semibold text-text-primary">Scrape Expert Tweets</h3>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed mb-4">
@@ -76,7 +76,7 @@ export default function HowItWorksPage() {
         <div className="max-w-3xl mx-auto">
           <div className="rounded-xl border border-border-subtle bg-surface/50 p-6 sm:p-8">
             <div className="flex items-center gap-4 mb-4">
-              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold flex items-center justify-center">2</span>
+              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-lg font-bold flex items-center justify-center">2</span>
               <h3 className="text-xl font-semibold text-text-primary">Analyze with AI</h3>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed mb-4">
@@ -115,7 +115,7 @@ export default function HowItWorksPage() {
         <div className="max-w-3xl mx-auto">
           <div className="rounded-xl border border-border-subtle bg-surface/50 p-6 sm:p-8">
             <div className="flex items-center gap-4 mb-4">
-              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold flex items-center justify-center">3</span>
+              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-lg font-bold flex items-center justify-center">3</span>
               <h3 className="text-xl font-semibold text-text-primary">Generate Comprehensive Report</h3>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed mb-6">
@@ -143,7 +143,7 @@ export default function HowItWorksPage() {
         <div className="max-w-3xl mx-auto">
           <div className="rounded-xl border border-border-subtle bg-surface/50 p-6 sm:p-8">
             <div className="flex items-center gap-4 mb-4">
-              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold flex items-center justify-center">4</span>
+              <span className="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-white text-lg font-bold flex items-center justify-center">4</span>
               <h3 className="text-xl font-semibold text-text-primary">Deliver to Your Inbox</h3>
             </div>
             <p className="text-sm text-text-secondary leading-relaxed mb-4">

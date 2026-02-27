@@ -278,7 +278,7 @@ export default function ManagePage() {
           </p>
           <button
             onClick={handleUpgrade}
-            className="w-full px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all"
+            className="w-full px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all"
           >
             Upgrade Now
           </button>

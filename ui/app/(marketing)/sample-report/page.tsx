@@ -18,7 +18,7 @@ function FadedSection({ children, label }: { children: React.ReactNode; label: s
         <p className="text-xs text-text-muted">{label}</p>
         <Link
           href="/subscribe"
-          className="px-5 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/20"
+          className="px-5 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/20"
         >
           Subscribe to unlock full reports
         </Link>
@@ -201,7 +201,7 @@ export default function SampleReportPage() {
               <p className="text-sm text-text-muted font-medium">{analysis.Recommendations.length} actionable recommendations</p>
               <Link
                 href="/subscribe"
-                className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/20"
+                className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/20"
               >
                 Subscribe to unlock
               </Link>

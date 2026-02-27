@@ -42,7 +42,7 @@ export function UserMenu({ name, email, isAdmin }: UserMenuProps) {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-elevated/60 transition-all"
       >
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
           {initials}
         </div>
         <span className="text-sm font-medium text-text-primary hidden sm:block max-w-[120px] truncate">
@@ -140,7 +140,7 @@ export function UserMenu({ name, email, isAdmin }: UserMenuProps) {
           {/* Sign out */}
           <div className="py-1">
             <button
-              onClick={() => signOut({ callbackUrl: '/api/auth/signin' })}
+              onClick={() => signOut({ callbackUrl: '/signin' })}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-muted hover:text-text-primary hover:bg-surface-elevated/60 transition-all"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -169,7 +169,7 @@ export default function TriggerAnalysis() {
         {(job.status === 'Queued' || job.status === 'Running') && (
           <div className="flex items-center gap-2 text-sm text-text-muted">
             <svg
-              className="animate-spin h-4 w-4 text-blue-400"
+              className="animate-spin h-4 w-4 text-brand-400"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -202,7 +202,7 @@ export default function TriggerAnalysis() {
             <span className="text-green-400">Analysis complete!</span>
             <button
               onClick={() => router.push(`/reports/${domain}/${job.reportId}`)}
-              className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+              className="text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors"
             >
               View Report
             </button>
@@ -224,7 +224,7 @@ export default function TriggerAnalysis() {
   return (
     <div className="rounded-xl border border-border-subtle bg-surface/60 backdrop-blur-sm p-6">
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>

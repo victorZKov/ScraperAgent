@@ -27,7 +27,7 @@ export default function FloatingCTA({ href, label }: FloatingCTAProps) {
         </p>
         <Link
           href={href}
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/20 sm:ml-4"
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/20 sm:ml-4"
         >
           {label}
         </Link>

@@ -46,7 +46,7 @@ export default function PricingPage() {
 
       {/* Plan Card */}
       <div className="max-w-md mx-auto rounded-2xl border border-border-subtle bg-surface/50 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4 text-center">
+        <div className="bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-4 text-center">
           <p className="text-white font-semibold">
             Free Trial: {PRICING.trialReports} reports in {PRICING.trialDays} days
           </p>
@@ -75,7 +75,7 @@ export default function PricingPage() {
 
           <Link
             href="/subscribe"
-            className="block w-full text-center px-6 py-3 rounded-xl text-base font-semibold bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/20"
+            className="block w-full text-center px-6 py-3 rounded-xl text-base font-semibold bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/20"
           >
             Start Free Trial
           </Link>
