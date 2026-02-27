@@ -134,7 +134,17 @@ public class AnalysisBackgroundService : BackgroundService
             }).ToList()
         };
 
-        // 5. Send email to all recipients (email_recipients + subscribers tables, filtered by domain)
+        // 5. Save report FIRST — email links reference this ID, so it must exist in DB before sending
+        sw.Stop();
+        report.DurationSeconds = Math.Round(sw.Elapsed.TotalSeconds, 1);
+
+        _logger.LogInformation("Step 5: Saving report...");
+        await storageService.SaveReportAsync(report);
+        var htmlReport = emailService.BuildHtmlReport(report);
+        await storageService.SaveReportHtmlAsync(report, htmlReport);
+        _logger.LogInformation("Report saved with ID: {ReportId} (took {Duration}s)", report.Id, report.DurationSeconds);
+
+        // 6. Send email to all recipients (after save — report is guaranteed in DB before links go out)
         var subscriberService = scope.ServiceProvider.GetRequiredService<ISubscriberService>();
         var allRecipients = new List<string>();
 
@@ -167,7 +177,7 @@ public class AnalysisBackgroundService : BackgroundService
 
         if (allRecipients.Any())
         {
-            _logger.LogInformation("Step 4: Sending email to {RecipientCount} total recipients: {Recipients}",
+            _logger.LogInformation("Step 6: Sending email to {RecipientCount} total recipients: {Recipients}",
                 allRecipients.Count, string.Join(", ", allRecipients));
             var emailSent = await emailService.SendMarketReportAsync(report, allRecipients);
             report.EmailSent = emailSent;
@@ -198,16 +208,6 @@ public class AnalysisBackgroundService : BackgroundService
         {
             _logger.LogWarning(ex, "Failed to increment trial usage (non-fatal)");
         }
-
-        // 6. Save report
-        sw.Stop();
-        report.DurationSeconds = Math.Round(sw.Elapsed.TotalSeconds, 1);
-
-        _logger.LogInformation("Step 5: Saving report...");
-        await storageService.SaveReportAsync(report);
-        var htmlReport = emailService.BuildHtmlReport(report);
-        await storageService.SaveReportHtmlAsync(report, htmlReport);
-        _logger.LogInformation("Report saved with ID: {ReportId} (took {Duration}s)", report.Id, report.DurationSeconds);
 
         _logger.LogInformation("{Domain} analysis pipeline completed in {Duration}s", domainLabel, report.DurationSeconds);
         return report;
