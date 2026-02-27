@@ -149,7 +149,7 @@ public class AnalysisBackgroundService : BackgroundService
         _logger.LogInformation("Report saved with ID: {ReportId} (took {Duration}s)", report.Id, report.DurationSeconds);
 
         // 6. Send email to all recipients (after save — report is guaranteed in DB before links go out)
-        var emailEnabled = !string.Equals(_config["Email__Enabled"], "false", StringComparison.OrdinalIgnoreCase);
+        var emailEnabled = !string.Equals(_config["Email:Enabled"], "false", StringComparison.OrdinalIgnoreCase);
         if (!emailEnabled)
         {
             _logger.LogWarning("Email sending is disabled (Email__Enabled=false) — skipping.");
