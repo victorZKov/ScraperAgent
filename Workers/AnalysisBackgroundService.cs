@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading.Channels;
+using Microsoft.Extensions.Configuration;
 using ScraperAgent.Models;
 using ScraperAgent.Services;
 
@@ -11,17 +12,20 @@ public class AnalysisBackgroundService : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IJobTrackingService _jobTracker;
     private readonly ILogger<AnalysisBackgroundService> _logger;
+    private readonly IConfiguration _config;
 
     public AnalysisBackgroundService(
         Channel<AnalysisJobMessage> channel,
         IServiceScopeFactory scopeFactory,
         IJobTrackingService jobTracker,
-        ILogger<AnalysisBackgroundService> logger)
+        ILogger<AnalysisBackgroundService> logger,
+        IConfiguration config)
     {
         _channel = channel;
         _scopeFactory = scopeFactory;
         _jobTracker = jobTracker;
         _logger = logger;
+        _config = config;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -145,6 +149,13 @@ public class AnalysisBackgroundService : BackgroundService
         _logger.LogInformation("Report saved with ID: {ReportId} (took {Duration}s)", report.Id, report.DurationSeconds);
 
         // 6. Send email to all recipients (after save — report is guaranteed in DB before links go out)
+        var emailEnabled = !string.Equals(_config["Email__Enabled"], "false", StringComparison.OrdinalIgnoreCase);
+        if (!emailEnabled)
+        {
+            _logger.LogWarning("Email sending is disabled (Email__Enabled=false) — skipping.");
+            return report;
+        }
+
         var subscriberService = scope.ServiceProvider.GetRequiredService<ISubscriberService>();
         var allRecipients = new List<string>();
 
