@@ -19,4 +19,4 @@ data:
   Mollie__MonthlyPrice: "9.99"
   Mollie__Currency: "EUR"
   Email__Smtp__TimeoutMs: "10000"
-  Email__Enabled: "false"
+  Email__Enabled: "true"
