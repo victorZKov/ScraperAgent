@@ -14,6 +14,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.NEXT_PUBLIC_OIDC_CLIENT_ID,
       clientSecret: process.env.OIDC_CLIENT_SECRET,
       profile(profile) {
+        console.log("[auth] QuantumID profile claims:", JSON.stringify(profile));
         return {
           id: profile.sub,
           // QuantumID may use preferred_username instead of name
