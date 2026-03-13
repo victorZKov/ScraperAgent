@@ -21,6 +21,16 @@ backup-scripts/.env.backup
 backup-scripts/backup-log.txt
 backup-scripts/rclone.conf
 
+# User secrets (dotnet user-secrets)
+**/secrets.json
+
+# Kubernetes secrets with real credentials (never commit filled-in secret manifests)
+infra/k8s/**/secret.filled.yaml
+infra/k8s/**/secret.local.yaml
+
+# AppHost local settings with real parameter values
+ScraperAgent.AppHost/appsettings.local.json
+
 # Backups
 backup-scripts/backups/
 backups/
