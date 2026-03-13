@@ -130,6 +130,8 @@ All analysis and configuration endpoints require authentication. Subscription en
 
 ## Getting Started
 
+> **📖 Full setup guide:** For a comprehensive walkthrough — including how to register all external services (AI, SMTP, Mollie, QuantumID OIDC), a complete environment variable reference, database migration instructions, and Kubernetes deployment steps — see **[STARTUP.md](STARTUP.md)**.
+
 ### Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
