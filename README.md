@@ -10,7 +10,7 @@ AI-powered market and crypto intelligence platform. ScraperAgent scrapes expert 
 - **AI Analysis Pipeline** — Sends scraped tweets to Azure OpenAI / Scaleway Generative APIs for sentiment scoring, trading signal extraction, and sector classification
 - **Report Generation** — Produces structured JSON reports containing overall sentiment (Bullish / Neutral / Bearish), extracted signals, sector breakdowns, and per-tweet analysis
 - **Email Delivery** — Sends reports to verified subscribers on a configurable cron schedule via Scaleway SMTP
-- **Subscription Management** — Free trial (5 reports over 7 days) and a paid tier (€9.99/month via Mollie payments)
+- **Subscription Management** — Email subscriber management with verification and domain preferences
 
 ## Tech Stack
 
@@ -21,7 +21,7 @@ AI-powered market and crypto intelligence platform. ScraperAgent scrapes expert 
 | ORM | Entity Framework Core + Npgsql |
 | AI | Azure OpenAI / Scaleway Generative APIs (GPT-4o) |
 | Email | MailKit → Scaleway SMTP |
-| UI | Next.js 15, React 18, TypeScript, Tailwind CSS |
+| UI | Next.js 14, React 18, TypeScript, Tailwind CSS |
 | Auth | Auth.js v5 (NextAuth) + QuantumID OIDC |
 | Payments | Mollie API (EUR direct debit) |
 | Database | PostgreSQL (reports and config stored as JSONB) |
@@ -235,6 +235,13 @@ This project uses the **ATLAS + GOTCHA** planning workflow:
 
 Check the manifest before starting any new feature work.
 
+## Support
+
+ScraperAgent is free and open source. If it saves you time or teaches you something, consider buying me a coffee:
+
+- [Buy Me a Coffee](https://buymeacoffee.com/victorxata)
+- [Blog — Atlas+Gotcha series](https://blog.victorz.cloud)
+
 ## License
 
-This is a private project. All rights reserved.
+MIT License — see [LICENSE](LICENSE) for details.
